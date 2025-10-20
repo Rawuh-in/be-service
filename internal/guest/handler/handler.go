@@ -5,29 +5,31 @@ import (
 	"net/http"
 	"strconv"
 
-	guest_model "rawuh-service/internal/guest/model"
-	guest_service "rawuh-service/internal/guest/service"
+	guestModel "rawuh-service/internal/guest/model"
+	guestService "rawuh-service/internal/guest/service"
 	"rawuh-service/internal/shared/lib/utils"
+
+	"github.com/gorilla/mux"
 )
 
 type GuestHandler struct {
-	svc guest_service.GuestService
+	svc guestService.GuestService
 }
 
-func NewGuestHandler(svc guest_service.GuestService) *GuestHandler {
+func NewGuestHandler(svc guestService.GuestService) *GuestHandler {
 	return &GuestHandler{svc: svc}
 }
 
 func (h *GuestHandler) AddGuest(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	result := &guest_model.CreateGuestResponse{
+	result := &guestModel.CreateGuestResponse{
 		Error:   false,
 		Code:    http.StatusOK,
 		Message: "Success Create Product",
 	}
 
-	var p guest_model.Guests
+	var p guestModel.Guests
 	if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
 		result.Error = true
 		result.Code = http.StatusInternalServerError
@@ -38,10 +40,59 @@ func (h *GuestHandler) AddGuest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req := &guest_model.CreateGuestRequest{
-		Name: p.Name,
+	req := &guestModel.CreateGuestRequest{
+		Name:    p.Name,
+		Address: p.Address,
+		Phone:   p.Phone,
+		Email:   p.Email,
+		EventId: p.EventId,
 	}
 	if err := h.svc.AddGuest(ctx, req); err != nil {
+		result.Error = true
+		result.Code = http.StatusForbidden
+		result.Message = err.Error()
+		w.Header().Add("content-type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+
+	result.Error = false
+	result.Code = http.StatusOK
+	w.Header().Add("content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(result)
+}
+
+func (h *GuestHandler) UpdateGuestByID(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	result := &guestModel.UpdateGuestResponse{
+		Error:   false,
+		Code:    http.StatusOK,
+		Message: "Success Create Product",
+	}
+
+	var p guestModel.Guests
+	if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
+		result.Error = true
+		result.Code = http.StatusInternalServerError
+		result.Message = "Invalid Argument"
+		w.Header().Add("content-type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+
+	req := &guestModel.UpdateGuestRequest{
+		EventId: mux.Vars(r)["event_id"],
+		GuestID: mux.Vars(r)["guest_id"],
+		Name:    p.Name,
+		Address: p.Address,
+		Phone:   p.Phone,
+		Email:   p.Email,
+	}
+	if err := h.svc.UpdateGuestByID(ctx, req); err != nil {
 		result.Error = true
 		result.Code = http.StatusForbidden
 		result.Message = err.Error()
@@ -61,7 +112,7 @@ func (h *GuestHandler) AddGuest(w http.ResponseWriter, r *http.Request) {
 func (h *GuestHandler) ListGuests(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	result := &guest_model.ListGuestResponse{
+	result := &guestModel.ListGuestResponse{
 		Error:   false,
 		Code:    http.StatusOK,
 		Message: "Success",
@@ -79,7 +130,7 @@ func (h *GuestHandler) ListGuests(w http.ResponseWriter, r *http.Request) {
 		limit = 10
 	}
 
-	req := &guest_model.ListGuestRequest{
+	req := &guestModel.ListGuestRequest{
 		Page:    int32(page),
 		Limit:   int32(limit),
 		Sort:    queryParams.Get("sort"),
@@ -88,7 +139,7 @@ func (h *GuestHandler) ListGuests(w http.ResponseWriter, r *http.Request) {
 		EventId: queryParams.Get("event_id"),
 	}
 
-	products, err := h.svc.ListGuests(ctx, req)
+	guests, err := h.svc.ListGuests(ctx, req)
 
 	if err != nil {
 		utils.HandleGrpcError(w, err)
@@ -98,5 +149,69 @@ func (h *GuestHandler) ListGuests(w http.ResponseWriter, r *http.Request) {
 	result.Code = http.StatusOK
 	w.Header().Add("content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(products)
+	json.NewEncoder(w).Encode(guests)
+}
+
+func (h *GuestHandler) GetGuestByID(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	result := &guestModel.GetGuestByIDResponse{
+		Error:   false,
+		Code:    http.StatusOK,
+		Message: "Success",
+	}
+
+	req := &guestModel.GetGuestByIDRequest{
+		EventId: mux.Vars(r)["event_id"],
+		GuestID: mux.Vars(r)["guest_id"],
+	}
+
+	guest, err := h.svc.GetGuestByID(ctx, req)
+	if err != nil {
+		result.Error = true
+		result.Code = http.StatusForbidden
+		result.Message = err.Error()
+		w.Header().Add("content-type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+
+	result.Error = false
+	result.Code = http.StatusOK
+	w.Header().Add("content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(guest)
+}
+
+func (h *GuestHandler) DeleteGuestByID(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	result := &guestModel.GetGuestByIDResponse{
+		Error:   false,
+		Code:    http.StatusOK,
+		Message: "Success",
+	}
+
+	req := &guestModel.DeleteGuestByIDRequest{
+		EventId: mux.Vars(r)["event_id"],
+		GuestID: mux.Vars(r)["guest_id"],
+	}
+
+	guest, err := h.svc.DeleteGuestByID(ctx, req)
+	if err != nil {
+		result.Error = true
+		result.Code = http.StatusForbidden
+		result.Message = err.Error()
+		w.Header().Add("content-type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+
+	result.Error = false
+	result.Code = http.StatusOK
+	w.Header().Add("content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(guest)
 }

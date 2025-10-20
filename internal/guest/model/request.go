@@ -32,3 +32,39 @@ type CreateGuestResponse struct {
 	Code    int32
 	Message string
 }
+type UpdateGuestRequest struct {
+	GuestID string
+	Name    string
+	Address string
+	Phone   string
+	Email   string
+	EventId string
+}
+
+type UpdateGuestResponse struct {
+	Error   bool
+	Code    int32
+	Message string
+}
+
+type GetGuestByIDRequest struct {
+	GuestID string
+	EventId string
+}
+
+type GetGuestByIDResponse struct {
+	Error   bool
+	Code    int32
+	Message string
+	Data    *Guests
+}
+type DeleteGuestByIDRequest struct {
+	GuestID string
+	EventId string
+}
+
+type DeleteGuestByIDResponse struct {
+	Error   bool
+	Code    int32
+	Message string
+}

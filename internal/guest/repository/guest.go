@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	guest_model "rawuh-service/internal/guest/model"
+	guestModel "rawuh-service/internal/guest/model"
 	"rawuh-service/internal/shared/db"
 	model "rawuh-service/internal/shared/model"
 
@@ -22,14 +22,14 @@ func NewGuestRepository(provider *db.GormProvider) *GuestRepository {
 	}
 }
 
-func (p *GuestRepository) CreateGuest(ctx context.Context, req *guest_model.CreateGuestRequest) error {
+func (p *GuestRepository) CreateGuest(ctx context.Context, req *guestModel.CreateGuestRequest) error {
 	timeoutctx, cancel := context.WithTimeout(ctx, p.provider.GetTimeout())
 	defer cancel()
 
 	query := p.provider.GetDB().WithContext(timeoutctx).Debug().Table("public.guests")
 
 	now := time.Now()
-	data := &guest_model.Guests{
+	data := &guestModel.Guests{
 		Name:      req.Name,
 		Address:   req.Address,
 		Phone:     req.Phone,
@@ -39,27 +39,52 @@ func (p *GuestRepository) CreateGuest(ctx context.Context, req *guest_model.Crea
 		UpdatedAt: &now,
 	}
 
-	if err := query.Create(data).Error; err != nil {
+	if err := query.Omit("guest_id").Create(data).Error; err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (p *GuestRepository) GetGuestByName(ctx context.Context, guestName string) (*guest_model.Guests, error) {
+func (p *GuestRepository) UpdateGuest(ctx context.Context, req *guestModel.UpdateGuestRequest) error {
 	timeoutctx, cancel := context.WithTimeout(ctx, p.provider.GetTimeout())
 	defer cancel()
 
-	var data guest_model.Guests
+	query := p.provider.GetDB().WithContext(timeoutctx).Debug().Table("public.guests")
 
-	err := p.provider.GetDB().WithContext(timeoutctx).
+	query = query.Where("guest_id = ? and event_id = ?", req.GuestID, req.EventId)
+
+	now := time.Now()
+	data := &guestModel.Guests{
+		Name:    req.Name,
+		Address: req.Address,
+		Phone:   req.Phone,
+		Email:   req.Email,
+		// EventId:   req.EventId,
+		UpdatedAt: &now,
+	}
+
+	if err := query.Updates(data).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *GuestRepository) GetGuestByID(ctx context.Context, guest_id string, event_id string) (*guestModel.Guests, error) {
+	timeoutctx, cancel := context.WithTimeout(ctx, p.provider.GetTimeout())
+	defer cancel()
+
+	var data guestModel.Guests
+
+	err := p.provider.GetDB().WithContext(timeoutctx).Debug().
 		Table("public.guests").
-		Where("name = ?", guestName).
+		Where("guest_id = ? and event_id = ?", guest_id, event_id).
 		First(&data).Error
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return &guest_model.Guests{}, nil
+			return &guestModel.Guests{}, nil
 		}
 
 		return nil, err
@@ -68,7 +93,20 @@ func (p *GuestRepository) GetGuestByName(ctx context.Context, guestName string) 
 	return &data, nil
 }
 
-func (p *GuestRepository) ListGuests(ctx context.Context, event_id string, pagination *model.PaginationResponse, sql *db.QueryBuilder, sort *model.Sort) (data []*guest_model.Guests, err error) {
+func (p *GuestRepository) DeleteGuestByID(ctx context.Context, guestID string, eventID string) error {
+	timeoutctx, cancel := context.WithTimeout(ctx, p.provider.GetTimeout())
+	defer cancel()
+
+	db := p.provider.GetDB().WithContext(timeoutctx).Debug().Table("public.guests")
+
+	if err := db.Where("guest_id = ? AND event_id = ?", guestID, eventID).Delete(&guestModel.Guests{}).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *GuestRepository) ListGuests(ctx context.Context, event_id string, pagination *model.PaginationResponse, sql *db.QueryBuilder, sort *model.Sort) (data []*guestModel.Guests, err error) {
 	timeoutctx, cancel := context.WithTimeout(ctx, p.provider.GetTimeout())
 	defer cancel()
 
