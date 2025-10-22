@@ -99,8 +99,14 @@ func (p *GuestRepository) DeleteGuestByID(ctx context.Context, guestID string, e
 
 	db := p.provider.GetDB().WithContext(timeoutctx).Debug().Table("public.guests")
 
-	if err := db.Where("guest_id = ? AND event_id = ?", guestID, eventID).Delete(&guestModel.Guests{}).Error; err != nil {
-		return err
+	tx := db.Where("guest_id = ? AND event_id = ?", guestID, eventID).Delete(&guestModel.Guests{})
+
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	if tx.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
 	}
 
 	return nil

@@ -9,6 +9,8 @@ import (
 	"regexp"
 	"strings"
 
+	paginationModel "rawuh-service/internal/shared/model"
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -103,4 +105,33 @@ func HandleGrpcError(w http.ResponseWriter, err error) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusInternalServerError)
 	json.NewEncoder(w).Encode(resp)
+}
+
+func SetPagination(page int32, limit int32) *paginationModel.PaginationResponse {
+	res := &paginationModel.PaginationResponse{
+		Limit: 10,
+		Page:  1,
+	}
+
+	if limit == 0 && page == 0 {
+		res.Limit = -1
+		res.Page = -1
+		return res
+	} else {
+		res.Limit = limit
+		res.Page = page
+	}
+
+	if res.Page == 0 {
+		res.Page = 1
+	}
+
+	switch {
+	case res.Limit > 100:
+		res.Limit = 100
+	case res.Limit <= 0:
+		res.Limit = 10
+	}
+
+	return res
 }

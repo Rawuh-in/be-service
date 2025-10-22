@@ -3,12 +3,12 @@ package guest_service
 import (
 	"context"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"net/http"
 	guestModel "rawuh-service/internal/guest/model"
 	"rawuh-service/internal/shared/lib/utils"
 	"rawuh-service/internal/shared/model"
-	paginationModel "rawuh-service/internal/shared/model"
 	"strconv"
 	"strings"
 
@@ -19,6 +19,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"gorm.io/gorm"
 )
 
 type GuestService interface {
@@ -41,35 +42,6 @@ func NewGuestService(dbProvider *guestDb.GuestRepository, logger *logrus.Logger,
 		logger:     logger,
 		redis:      redis,
 	}
-}
-
-func setPagination(page int32, limit int32) *paginationModel.PaginationResponse {
-	res := &paginationModel.PaginationResponse{
-		Limit: 10,
-		Page:  1,
-	}
-
-	if limit == 0 && page == 0 {
-		res.Limit = -1
-		res.Page = -1
-		return res
-	} else {
-		res.Limit = limit
-		res.Page = page
-	}
-
-	if res.Page == 0 {
-		res.Page = 1
-	}
-
-	switch {
-	case res.Limit > 100:
-		res.Limit = 100
-	case res.Limit <= 0:
-		res.Limit = 10
-	}
-
-	return res
 }
 
 func (s *guestService) AddGuest(ctx context.Context, req *guestModel.CreateGuestRequest) error {
@@ -178,7 +150,7 @@ func (s *guestService) ListGuests(ctx context.Context, req *guestModel.ListGuest
 
 	s.logger.Info("Success Decode Query")
 
-	pagination := setPagination(req.Page, req.Limit)
+	pagination := utils.SetPagination(req.Page, req.Limit)
 
 	allowedColumns := map[string]bool{
 		"created_at": true,
@@ -274,6 +246,9 @@ func (s *guestService) DeleteGuestByID(ctx context.Context, req *guestModel.Dele
 
 	s.logger.Info("Start DeleteGuestByID")
 	err := s.dbProvider.DeleteGuestByID(ctx, req.GuestID, req.EventId)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, status.Errorf(codes.NotFound, "Guest not found for event_id %s and guest_id %s", req.EventId, req.GuestID)
+	}
 	if err != nil {
 		s.logger.Error("err DeleteGuestByID ", err)
 		return nil, status.Error(codes.Internal, "Internal Server Error")

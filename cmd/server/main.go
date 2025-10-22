@@ -3,8 +3,11 @@ package main
 import (
 	"log"
 	"net/http"
+	eventHandler "rawuh-service/internal/event/handler"
+	eventDb "rawuh-service/internal/event/repository"
+	eventService "rawuh-service/internal/event/service"
 	guestHandler "rawuh-service/internal/guest/handler"
-	guest_db "rawuh-service/internal/guest/repository"
+	guestDb "rawuh-service/internal/guest/repository"
 	guestService "rawuh-service/internal/guest/service"
 	"rawuh-service/internal/shared/config"
 	"rawuh-service/internal/shared/db"
@@ -35,15 +38,18 @@ func main() {
 	logger.Info("Success connecting to db ", appConfig.Dsn)
 
 	dbProvider := db.NewProvider(gormDB)
-	guestDB := guest_db.NewGuestRepository(dbProvider)
+	guestDB := guestDb.NewGuestRepository(dbProvider)
+	eventDB := eventDb.NewEventRepository(dbProvider)
 
 	rdb := redis.NewRedis(appConfig.RedisAddr, appConfig.RedisPass, appConfig.RedisDB)
 
 	guestService := guestService.NewGuestService(guestDB, logger, rdb)
+	guestHandler := guestHandler.NewGuestHandler(guestService)
 
-	productHandler := guestHandler.NewGuestHandler(guestService)
+	eventService := eventService.NewEventService(eventDB, logger, rdb)
+	eventHandler := eventHandler.NewEventHandler(eventService)
 
-	r := router.NewRouter(productHandler)
+	r := router.NewRouter(guestHandler, eventHandler)
 
 	log.Println("Server running on :8080")
 	if err := http.ListenAndServe(":8080", r); err != nil {

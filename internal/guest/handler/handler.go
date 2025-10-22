@@ -26,10 +26,10 @@ func (h *GuestHandler) AddGuest(w http.ResponseWriter, r *http.Request) {
 	result := &guestModel.CreateGuestResponse{
 		Error:   false,
 		Code:    http.StatusOK,
-		Message: "Success Create Product",
+		Message: "Success Create New Guest",
 	}
 
-	var p guestModel.Guests
+	var p guestModel.CreateGuestRequest
 	if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
 		result.Error = true
 		result.Code = http.StatusInternalServerError
@@ -48,13 +48,9 @@ func (h *GuestHandler) AddGuest(w http.ResponseWriter, r *http.Request) {
 		EventId: p.EventId,
 	}
 	if err := h.svc.AddGuest(ctx, req); err != nil {
-		result.Error = true
-		result.Code = http.StatusForbidden
-		result.Message = err.Error()
-		w.Header().Add("content-type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(result)
+		utils.HandleGrpcError(w, err)
 		return
+
 	}
 
 	result.Error = false
@@ -70,7 +66,7 @@ func (h *GuestHandler) UpdateGuestByID(w http.ResponseWriter, r *http.Request) {
 	result := &guestModel.UpdateGuestResponse{
 		Error:   false,
 		Code:    http.StatusOK,
-		Message: "Success Create Product",
+		Message: "Success Update Guest",
 	}
 
 	var p guestModel.Guests
@@ -93,12 +89,7 @@ func (h *GuestHandler) UpdateGuestByID(w http.ResponseWriter, r *http.Request) {
 		Email:   p.Email,
 	}
 	if err := h.svc.UpdateGuestByID(ctx, req); err != nil {
-		result.Error = true
-		result.Code = http.StatusForbidden
-		result.Message = err.Error()
-		w.Header().Add("content-type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(result)
+		utils.HandleGrpcError(w, err)
 		return
 	}
 
@@ -136,7 +127,7 @@ func (h *GuestHandler) ListGuests(w http.ResponseWriter, r *http.Request) {
 		Sort:    queryParams.Get("sort"),
 		Dir:     queryParams.Get("dir"),
 		Query:   queryParams.Get("query"),
-		EventId: queryParams.Get("event_id"),
+		EventId: mux.Vars(r)["event_id"],
 	}
 
 	guests, err := h.svc.ListGuests(ctx, req)
@@ -168,15 +159,9 @@ func (h *GuestHandler) GetGuestByID(w http.ResponseWriter, r *http.Request) {
 
 	guest, err := h.svc.GetGuestByID(ctx, req)
 	if err != nil {
-		result.Error = true
-		result.Code = http.StatusForbidden
-		result.Message = err.Error()
-		w.Header().Add("content-type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(result)
+		utils.HandleGrpcError(w, err)
 		return
 	}
-
 	result.Error = false
 	result.Code = http.StatusOK
 	w.Header().Add("content-type", "application/json")
@@ -200,12 +185,7 @@ func (h *GuestHandler) DeleteGuestByID(w http.ResponseWriter, r *http.Request) {
 
 	guest, err := h.svc.DeleteGuestByID(ctx, req)
 	if err != nil {
-		result.Error = true
-		result.Code = http.StatusForbidden
-		result.Message = err.Error()
-		w.Header().Add("content-type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(result)
+		utils.HandleGrpcError(w, err)
 		return
 	}
 
