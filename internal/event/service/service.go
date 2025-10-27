@@ -1,4 +1,4 @@
-package event_service
+package service
 
 import (
 	"context"
@@ -8,14 +8,16 @@ import (
 	"net/http"
 	eventModel "rawuh-service/internal/event/model"
 	eventDb "rawuh-service/internal/event/repository"
+	"rawuh-service/internal/shared/constant"
 	"rawuh-service/internal/shared/db"
 	"rawuh-service/internal/shared/lib/utils"
+	"rawuh-service/internal/shared/logger"
 	"rawuh-service/internal/shared/model"
 	"rawuh-service/internal/shared/redis"
 	"strconv"
 	"strings"
 
-	"github.com/sirupsen/logrus"
+	"go.elastic.co/apm/v2"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -30,11 +32,11 @@ type EventService interface {
 
 type eventService struct {
 	dbProvider *eventDb.EventRepository
-	logger     *logrus.Logger
+	logger     *logger.Logger
 	redis      *redis.Redis
 }
 
-func NewEventService(dbProvider *eventDb.EventRepository, logger *logrus.Logger, redis *redis.Redis) EventService {
+func NewEventService(dbProvider *eventDb.EventRepository, logger *logger.Logger, redis *redis.Redis) EventService {
 	return &eventService{
 		dbProvider: dbProvider,
 		logger:     logger,
@@ -43,21 +45,28 @@ func NewEventService(dbProvider *eventDb.EventRepository, logger *logrus.Logger,
 }
 
 func (s *eventService) ListEvent(ctx context.Context, req *eventModel.ListEventRequest) (*eventModel.ListEventResponse, error) {
-	s.logger.Info("Start ListEvent with req : ", req)
-	s.logger.Info("Start Decode Filter")
+	funcName := "ListEvent"
+	span, ctx := apm.StartSpan(ctx, funcName, constant.SpanTypeProccess)
+	span.Action = constant.SpanActionExecute
+	defer span.End()
+
+	ctx, loggerZap := s.logger.StartLogger(ctx, funcName, req)
+
+	loggerZap.Info("Start ListEvent with req : ", req)
+	loggerZap.Info("Start Decode Filter")
 
 	if req.UserID == "" {
-		s.logger.Error("Access denied with user_id  : ", req.UserID)
+		loggerZap.Error("Access denied with user_id  : ", nil)
 		return nil, status.Errorf(codes.PermissionDenied, "Permission Denied")
 	}
 
 	decodeQuery, err := base64.RawStdEncoding.DecodeString(req.Query)
 	if err != nil {
-		s.logger.Error("err DecodeString ", err)
+		loggerZap.Error("err DecodeString ", err)
 		return nil, nil
 	}
 
-	s.logger.Info("Success Decode Query")
+	loggerZap.Info("Success Decode Query")
 
 	pagination := utils.SetPagination(req.Page, req.Limit)
 
@@ -97,14 +106,14 @@ func (s *eventService) ListEvent(ctx context.Context, req *eventModel.ListEventR
 		Sort:          sort,
 	}
 
-	s.logger.Info("Start ListEvent")
+	loggerZap.Info("Start ListEvent")
 	guest, err := s.dbProvider.ListEvent(ctx, req.UserID, req.UserID, pagination, sqlBuilder, sort)
 	if err != nil {
-		s.logger.Error("err ListEvent ", err)
+		loggerZap.Error("err ListEvent ", err)
 		return nil, status.Error(codes.Internal, "Internal Server Error")
 	}
 
-	s.logger.Info("Start making response")
+	loggerZap.Info("Start making response")
 
 	result := &eventModel.ListEventResponse{
 		Error:      false,
@@ -118,22 +127,28 @@ func (s *eventService) ListEvent(ctx context.Context, req *eventModel.ListEventR
 }
 
 func (s *eventService) DetailEvent(ctx context.Context, req *eventModel.DetailEventRequest) (*eventModel.DetailEventResponse, error) {
-	s.logger.Info("Start ListEvent with req : ", req)
-	s.logger.Info("Start Decode Filter")
+	funcName := "ListProjects"
+	span, ctx := apm.StartSpan(ctx, funcName, constant.SpanTypeProccess)
+	span.Action = constant.SpanActionExecute
+	defer span.End()
+
+	ctx, loggerZap := s.logger.StartLogger(ctx, funcName, req)
+
+	loggerZap.Info("Start ListEvent with req : ", req)
 
 	if req.UserID == "" || req.EventsID == "" {
-		s.logger.Error("Access denied with user_id  : ", req.UserID)
+		loggerZap.Error("Access denied with user_id  : ", nil)
 		return nil, status.Errorf(codes.PermissionDenied, "Permission Denied")
 	}
 
-	s.logger.Info("Start ListEvent")
+	loggerZap.Info("Start ListEvent")
 	event, err := s.dbProvider.GetEventByID(ctx, req.EventsID, req.UserID)
 	if err != nil {
-		s.logger.Error("err ListEvent ", err)
+		loggerZap.Error("err ListEvent ", err)
 		return nil, status.Error(codes.Internal, "Internal Server Error")
 	}
 
-	s.logger.Info("Start making response")
+	loggerZap.Info("Start making response")
 
 	result := &eventModel.DetailEventResponse{
 		Error:   false,
@@ -146,18 +161,25 @@ func (s *eventService) DetailEvent(ctx context.Context, req *eventModel.DetailEv
 }
 
 func (s *eventService) DeleteEvent(ctx context.Context, req *eventModel.DeleteEventRequest) (*eventModel.DeleteEventResponse, error) {
-	s.logger.Info("Start ListEvent with req : ", req)
-	s.logger.Info("Start Decode Filter")
+	funcName := "DeleteEvent"
+	span, ctx := apm.StartSpan(ctx, funcName, constant.SpanTypeProccess)
+	span.Action = constant.SpanActionExecute
+	defer span.End()
+
+	ctx, loggerZap := s.logger.StartLogger(ctx, funcName, req)
+
+	loggerZap.Info("Start ListEvent with req : ", req)
+	loggerZap.Info("Start Decode Filter")
 
 	if req.UserID == "" || req.EventsID == "" {
-		s.logger.Error("Access denied with user_id  : ", req.UserID)
+		loggerZap.Error("Access denied with user_id  : ", nil)
 		return nil, status.Errorf(codes.PermissionDenied, "Permission Denied")
 	}
 
-	s.logger.Info("Start ListEvent")
+	loggerZap.Info("Start ListEvent")
 	err := s.dbProvider.DeleteEventByID(ctx, req.EventsID, req.UserID)
 	if err != nil {
-		s.logger.Error("err ListEvent ", err)
+		loggerZap.Error("err ListEvent ", err)
 		return nil, status.Error(codes.Internal, "Internal Server Error")
 	}
 	result := &eventModel.DeleteEventResponse{
@@ -170,10 +192,17 @@ func (s *eventService) DeleteEvent(ctx context.Context, req *eventModel.DeleteEv
 }
 
 func (s *eventService) AddEvent(ctx context.Context, req *eventModel.CreateEventRequest) error {
+	funcName := "AddEvent"
+	span, ctx := apm.StartSpan(ctx, funcName, constant.SpanTypeProccess)
+	span.Action = constant.SpanActionExecute
+	defer span.End()
+
+	ctx, loggerZap := s.logger.StartLogger(ctx, funcName, req)
+
 	remarkLength, _ := strconv.Atoi(utils.GetEnv("REMARK_LENGTH", "500"))
 	nameLength, _ := strconv.Atoi(utils.GetEnv("PRODUCT_NAME_LENGTH", "255"))
 
-	s.logger.Info("Start Validation for req ", req)
+	loggerZap.Info("Start Validation for req ", req)
 
 	if utils.IsEmptyString(req.EventName) || strings.TrimSpace(req.UserID) == "" {
 		return status.Errorf(codes.Aborted, "guest name is empty")
@@ -196,7 +225,7 @@ func (s *eventService) AddEvent(ctx context.Context, req *eventModel.CreateEvent
 		}
 	}
 
-	s.logger.Info("Start AddEvent with data ", req)
+	loggerZap.Info("Start AddEvent with data ", req)
 
 	optionData, _ := json.Marshal(req.Options)
 	// optionData, _ := protojson.MarshalOptions{UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(req.Options)
@@ -205,20 +234,27 @@ func (s *eventService) AddEvent(ctx context.Context, req *eventModel.CreateEvent
 
 	err := s.dbProvider.CreateEvent(ctx, req)
 	if err != nil {
-		s.logger.Error("err AddEvent ", err)
+		loggerZap.Error("err AddEvent ", err)
 		return status.Error(codes.Internal, "Internal Server Error")
 	}
 
-	s.logger.Info("Success AddEvent")
+	loggerZap.Info("Success AddEvent")
 
 	return nil
 }
 
 func (s *eventService) UpdateEvent(ctx context.Context, req *eventModel.UpdateEventRequest) error {
+	funcName := "UpdateEvent"
+	span, ctx := apm.StartSpan(ctx, funcName, constant.SpanTypeProccess)
+	span.Action = constant.SpanActionExecute
+	defer span.End()
+
+	ctx, loggerZap := s.logger.StartLogger(ctx, funcName, req)
+
 	remarkLength, _ := strconv.Atoi(utils.GetEnv("REMARK_LENGTH", "500"))
 	nameLength, _ := strconv.Atoi(utils.GetEnv("PRODUCT_NAME_LENGTH", "255"))
 
-	s.logger.Info("Start Validation for req ", req)
+	loggerZap.Info("Start Validation for req ", req)
 
 	if utils.IsEmptyString(req.EventName) || strings.TrimSpace(req.UserID) == "" {
 		return status.Errorf(codes.Aborted, "guest name is empty")
@@ -241,7 +277,7 @@ func (s *eventService) UpdateEvent(ctx context.Context, req *eventModel.UpdateEv
 		}
 	}
 
-	s.logger.Info("Start AddEvent with data ", req)
+	loggerZap.Info("Start AddEvent with data ", req)
 
 	optionData, _ := json.Marshal(req.Options)
 	// optionData, _ := protojson.MarshalOptions{UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(req.Options)
@@ -250,11 +286,11 @@ func (s *eventService) UpdateEvent(ctx context.Context, req *eventModel.UpdateEv
 
 	err := s.dbProvider.UpdateEvent(ctx, req)
 	if err != nil {
-		s.logger.Error("err AddEvent ", err)
+		loggerZap.Error("err AddEvent ", err)
 		return status.Error(codes.Internal, "Internal Server Error")
 	}
 
-	s.logger.Info("Success AddEvent")
+	loggerZap.Info("Success UpdateEvent")
 
 	return nil
 }

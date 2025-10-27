@@ -4,7 +4,6 @@ import (
 	"rawuh-service/internal/shared/lib/utils"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -47,9 +46,9 @@ func InitDB(dsn string) (*gorm.DB, error) {
 	return db, nil // ✅ now returning *gorm.DB
 }
 
-func NewLogger() *logrus.Logger {
-	log := logrus.New()
-	log.SetFormatter(&logrus.JSONFormatter{})
-	log.SetLevel(logrus.InfoLevel)
-	return log
-}
+// func NewLogger() *logrus.Logger {
+// 	log := logrus.New()
+// 	log.SetFormatter(&logrus.JSONFormatter{})
+// 	log.SetLevel(logrus.InfoLevel)
+// 	return log
+// }

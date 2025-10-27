@@ -1,10 +1,10 @@
-package event_model
+package model
 
 import (
 	"time"
 )
 
-type Events struct {
+type Event struct {
 	EventID       int64      `gorm:"primaryKey;autoIncrement"`
 	EventName     string     `gorm:"type:varchar(500)"`
 	Description   string     `gorm:"type:varchar(500)"`
@@ -16,4 +16,6 @@ type Events struct {
 	ProjectID     int64      `gorm:"type:integer[]"`
 	CreatedById   int64      `gorm:"type:bigint"`
 	CreatedByName string     `gorm:"type:varchar(500)"`
+	UpdatedById   int64      `gorm:"type:bigint"`
+	UpdatedByName string     `gorm:"type:varchar(500)"`
 }

@@ -1,4 +1,4 @@
-package guest_model
+package model
 
 import "rawuh-service/internal/shared/model"
 
@@ -15,7 +15,7 @@ type ListGuestResponse struct {
 	Error      bool
 	Code       int32
 	Message    string
-	Data       []*Guests
+	Data       []*Guest
 	Pagination *model.PaginationResponse
 }
 
@@ -56,7 +56,7 @@ type GetGuestByIDResponse struct {
 	Error   bool
 	Code    int32
 	Message string
-	Data    *Guests
+	Data    *Guest
 }
 type DeleteGuestByIDRequest struct {
 	GuestID string

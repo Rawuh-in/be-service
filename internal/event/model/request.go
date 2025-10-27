@@ -1,4 +1,4 @@
-package event_model
+package model
 
 import (
 	"rawuh-service/internal/shared/model"
@@ -18,7 +18,7 @@ type ListEventResponse struct {
 	Error      bool
 	Code       int32
 	Message    string
-	Data       []*Events
+	Data       []*Event
 	Pagination *model.PaginationResponse
 }
 
@@ -38,7 +38,7 @@ type CreateEventResponse struct {
 }
 
 type UpdateEventRequest struct {
-	EventsID    string
+	EventID     string
 	EventName   string
 	Description string
 	Options     string
@@ -62,7 +62,7 @@ type DetailEventResponse struct {
 	Error   bool
 	Code    int32
 	Message string
-	Data    *Events
+	Data    *Event
 }
 
 type DeleteEventRequest struct {

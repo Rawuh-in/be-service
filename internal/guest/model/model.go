@@ -1,8 +1,8 @@
-package guest_model
+package model
 
 import "time"
 
-type Guests struct {
+type Guest struct {
 	GuestID   int64      `gorm:"primaryKey;autoIncrement"`
 	Name      string     `gorm:"type:varchar(500)"`
 	Address   string     `gorm:"type:varchar(500)"`

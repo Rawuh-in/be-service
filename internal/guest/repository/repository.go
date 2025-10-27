@@ -1,4 +1,4 @@
-package guest_db
+package db
 
 import (
 	"context"
@@ -29,7 +29,7 @@ func (p *GuestRepository) CreateGuest(ctx context.Context, req *guestModel.Creat
 	query := p.provider.GetDB().WithContext(timeoutctx).Debug().Table("public.guests")
 
 	now := time.Now()
-	data := &guestModel.Guests{
+	data := &guestModel.Guest{
 		Name:      req.Name,
 		Address:   req.Address,
 		Phone:     req.Phone,
@@ -55,7 +55,7 @@ func (p *GuestRepository) UpdateGuest(ctx context.Context, req *guestModel.Updat
 	query = query.Where("guest_id = ? and event_id = ?", req.GuestID, req.EventId)
 
 	now := time.Now()
-	data := &guestModel.Guests{
+	data := &guestModel.Guest{
 		Name:    req.Name,
 		Address: req.Address,
 		Phone:   req.Phone,
@@ -71,11 +71,11 @@ func (p *GuestRepository) UpdateGuest(ctx context.Context, req *guestModel.Updat
 	return nil
 }
 
-func (p *GuestRepository) GetGuestByID(ctx context.Context, guest_id string, event_id string) (*guestModel.Guests, error) {
+func (p *GuestRepository) GetGuestByID(ctx context.Context, guest_id string, event_id string) (*guestModel.Guest, error) {
 	timeoutctx, cancel := context.WithTimeout(ctx, p.provider.GetTimeout())
 	defer cancel()
 
-	var data guestModel.Guests
+	var data guestModel.Guest
 
 	err := p.provider.GetDB().WithContext(timeoutctx).Debug().
 		Table("public.guests").
@@ -84,7 +84,7 @@ func (p *GuestRepository) GetGuestByID(ctx context.Context, guest_id string, eve
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return &guestModel.Guests{}, nil
+			return &guestModel.Guest{}, nil
 		}
 
 		return nil, err
@@ -99,7 +99,7 @@ func (p *GuestRepository) DeleteGuestByID(ctx context.Context, guestID string, e
 
 	db := p.provider.GetDB().WithContext(timeoutctx).Debug().Table("public.guests")
 
-	tx := db.Where("guest_id = ? AND event_id = ?", guestID, eventID).Delete(&guestModel.Guests{})
+	tx := db.Where("guest_id = ? AND event_id = ?", guestID, eventID).Delete(&guestModel.Guest{})
 
 	if tx.Error != nil {
 		return tx.Error
@@ -112,7 +112,7 @@ func (p *GuestRepository) DeleteGuestByID(ctx context.Context, guestID string, e
 	return nil
 }
 
-func (p *GuestRepository) ListGuests(ctx context.Context, event_id string, pagination *model.PaginationResponse, sql *db.QueryBuilder, sort *model.Sort) (data []*guestModel.Guests, err error) {
+func (p *GuestRepository) ListGuests(ctx context.Context, event_id string, pagination *model.PaginationResponse, sql *db.QueryBuilder, sort *model.Sort) (data []*guestModel.Guest, err error) {
 	timeoutctx, cancel := context.WithTimeout(ctx, p.provider.GetTimeout())
 	defer cancel()
 

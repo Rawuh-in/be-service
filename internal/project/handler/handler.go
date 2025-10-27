@@ -3,26 +3,27 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
-	eventModel "rawuh-service/internal/event/model"
-	eventService "rawuh-service/internal/event/service"
+	projectModel "rawuh-service/internal/project/model"
+	projectService "rawuh-service/internal/project/service"
 	"rawuh-service/internal/shared/lib/utils"
 	"strconv"
 
 	"github.com/gorilla/mux"
 )
 
-type EventHandler struct {
-	svc eventService.EventService
+type ProjectHandler struct {
+	svc projectService.ProjectService
 }
 
-func NewEventHandler(svc eventService.EventService) *EventHandler {
-	return &EventHandler{svc: svc}
+func NewProjectHandler(svc projectService.ProjectService) *ProjectHandler {
+	return &ProjectHandler{
+		svc: svc,
+	}
 }
-
-func (h *EventHandler) ListEvent(w http.ResponseWriter, r *http.Request) {
+func (h *ProjectHandler) ListProject(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	result := &eventModel.ListEventResponse{
+	result := &projectModel.ListProjectResponse{
 		Error:   false,
 		Code:    http.StatusOK,
 		Message: "Success",
@@ -40,16 +41,16 @@ func (h *EventHandler) ListEvent(w http.ResponseWriter, r *http.Request) {
 		limit = 10
 	}
 
-	req := &eventModel.ListEventRequest{
-		Page:   int32(page),
-		Limit:  int32(limit),
-		Sort:   queryParams.Get("sort"),
-		Dir:    queryParams.Get("dir"),
-		Query:  queryParams.Get("query"),
-		UserID: mux.Vars(r)["user_id"],
+	req := &projectModel.ListProjectRequest{
+		Page:    int32(page),
+		Limit:   int32(limit),
+		Sort:    queryParams.Get("sort"),
+		Dir:     queryParams.Get("dir"),
+		Query:   queryParams.Get("query"),
+		EventId: mux.Vars(r)["event_id"],
 	}
 
-	guests, err := h.svc.ListEvent(ctx, req)
+	guests, err := h.svc.ListProjects(ctx, req)
 
 	if err != nil {
 		utils.HandleGrpcError(w, err)
@@ -62,33 +63,134 @@ func (h *EventHandler) ListEvent(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(guests)
 }
 
-func (h *EventHandler) DetailEvent(w http.ResponseWriter, r *http.Request) {
+func (h *ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	result := &eventModel.DetailEventResponse{
+	result := &projectModel.CreateProjectResponse{
 		Error:   false,
 		Code:    http.StatusOK,
 		Message: "Success",
 	}
 
-	queryParams := r.URL.Query()
-
-	page, _ := strconv.Atoi(queryParams.Get("page"))
-	limit, _ := strconv.Atoi(queryParams.Get("limit"))
-
-	if page <= 0 {
-		page = 1
-	}
-	if limit <= 0 {
-		limit = 10
-	}
-
-	req := &eventModel.DetailEventRequest{
-		EventsID: mux.Vars(r)["event_id"],
-		UserID:   mux.Vars(r)["user_id"],
+	var p projectModel.CreateProjectRequest
+	if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
+		result.Error = true
+		result.Code = http.StatusInternalServerError
+		result.Message = "Invalid Argument"
+		w.Header().Add("content-type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(result)
+		return
 	}
 
-	guests, err := h.svc.DetailEvent(ctx, req)
+	req := &projectModel.CreateProjectRequest{
+		ProjectName: p.ProjectName,
+		UserID:      p.UserID,
+	}
+
+	err := h.svc.CreateProject(ctx, req)
+
+	if err != nil {
+		utils.HandleGrpcError(w, err)
+		return
+	}
+	result.Error = false
+	result.Code = http.StatusOK
+	w.Header().Add("content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(result)
+}
+
+func (h *ProjectHandler) UpdateProject(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	result := &projectModel.UpdateProjectResponse{
+		Error:   false,
+		Code:    http.StatusOK,
+		Message: "Success",
+	}
+
+	var p projectModel.UpdateProjectRequest
+	if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
+		result.Error = true
+		result.Code = http.StatusInternalServerError
+		result.Message = "Invalid Argument"
+		w.Header().Add("content-type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+
+	req := &projectModel.UpdateProjectRequest{
+		ProjectID:   mux.Vars(r)["project_id"],
+		ProjectName: p.ProjectName,
+		UserID:      p.UserID,
+	}
+
+	err := h.svc.UpdateProject(ctx, req)
+
+	if err != nil {
+		utils.HandleGrpcError(w, err)
+		return
+	}
+	result.Error = false
+	result.Code = http.StatusOK
+	w.Header().Add("content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(result)
+}
+
+func (h *ProjectHandler) DeleteProject(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	result := &projectModel.DeleteProjectResponse{
+		Error:   false,
+		Code:    http.StatusOK,
+		Message: "Success",
+	}
+
+	var p projectModel.DeleteProjectRequest
+	if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
+		result.Error = true
+		result.Code = http.StatusInternalServerError
+		result.Message = "Invalid Argument"
+		w.Header().Add("content-type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+
+	req := &projectModel.DeleteProjectRequest{
+		ProjectID: mux.Vars(r)["project_id"],
+	}
+
+	err := h.svc.DeleteProject(ctx, req)
+
+	if err != nil {
+		utils.HandleGrpcError(w, err)
+		return
+	}
+	result.Error = false
+	result.Code = http.StatusOK
+	w.Header().Add("content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(result)
+}
+
+func (h *ProjectHandler) DetailProject(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	result := &projectModel.GetProjectDetailResponse{
+		Error:   false,
+		Code:    http.StatusOK,
+		Message: "Success",
+	}
+
+	req := &projectModel.GetProjectDetailRequest{
+		ProjectID: mux.Vars(r)["project_id"],
+	}
+
+	guests, err := h.svc.GetProjectDetail(ctx, req)
 
 	if err != nil {
 		utils.HandleGrpcError(w, err)
@@ -99,115 +201,4 @@ func (h *EventHandler) DetailEvent(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(guests)
-}
-
-func (h *EventHandler) AddEvent(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	result := &eventModel.CreateEventResponse{
-		Error:   false,
-		Code:    http.StatusOK,
-		Message: "Success Create New Event",
-	}
-
-	var p eventModel.CreateEventRequest
-	if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
-		result.Error = true
-		result.Code = http.StatusInternalServerError
-		result.Message = "Invalid Argument"
-		w.Header().Add("content-type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(result)
-		return
-	}
-
-	req := &eventModel.CreateEventRequest{
-		EventName:   p.EventName,
-		Description: p.Description,
-		Options:     p.Options,
-		StartDate:   p.StartDate,
-		EndDate:     p.EndDate,
-		UserID:      p.UserID,
-	}
-
-	if err := h.svc.AddEvent(ctx, req); err != nil {
-		utils.HandleGrpcError(w, err)
-		return
-
-	}
-
-	result.Error = false
-	result.Code = http.StatusOK
-	w.Header().Add("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(result)
-}
-
-func (h *EventHandler) UpdateEvent(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	result := &eventModel.UpdateEventResponse{
-		Error:   false,
-		Code:    http.StatusOK,
-		Message: "Success Create New Event",
-	}
-
-	var p eventModel.UpdateEventRequest
-	if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
-		result.Error = true
-		result.Code = http.StatusInternalServerError
-		result.Message = "Invalid Argument"
-		w.Header().Add("content-type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(result)
-		return
-	}
-
-	req := &eventModel.UpdateEventRequest{
-		EventName:   p.EventName,
-		Description: p.Description,
-		Options:     p.Options,
-		StartDate:   p.StartDate,
-		EndDate:     p.EndDate,
-		UserID:      p.UserID,
-	}
-
-	if err := h.svc.UpdateEvent(ctx, req); err != nil {
-		utils.HandleGrpcError(w, err)
-		return
-
-	}
-
-	result.Error = false
-	result.Code = http.StatusOK
-	w.Header().Add("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(result)
-}
-
-func (h *EventHandler) DeleteEvent(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	result := &eventModel.DeleteEventResponse{
-		Error:   false,
-		Code:    http.StatusOK,
-		Message: "Success",
-	}
-
-	req := &eventModel.DeleteEventRequest{
-		EventsID: mux.Vars(r)["event_id"],
-		UserID:   mux.Vars(r)["user_id"],
-	}
-
-	event, err := h.svc.DeleteEvent(ctx, req)
-
-	if err != nil {
-		utils.HandleGrpcError(w, err)
-		return
-	}
-	result.Error = false
-	result.Code = http.StatusOK
-	w.Header().Add("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(event)
 }

@@ -11,6 +11,7 @@ import (
 
 	paginationModel "rawuh-service/internal/shared/model"
 
+	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -134,4 +135,8 @@ func SetPagination(page int32, limit int32) *paginationModel.PaginationResponse 
 	}
 
 	return res
+}
+
+func GenerateProcessId() string {
+	return uuid.New().String()
 }

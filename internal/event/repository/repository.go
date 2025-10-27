@@ -1,4 +1,4 @@
-package event_db
+package db
 
 import (
 	"context"
@@ -22,7 +22,7 @@ func NewEventRepository(provider *db.GormProvider) *EventRepository {
 	}
 }
 
-func (p *EventRepository) ListEvent(ctx context.Context, participantID string, userID string, pagination *model.PaginationResponse, sql *db.QueryBuilder, sort *model.Sort) (data []*eventModel.Events, err error) {
+func (p *EventRepository) ListEvent(ctx context.Context, participantID string, userID string, pagination *model.PaginationResponse, sql *db.QueryBuilder, sort *model.Sort) (data []*eventModel.Event, err error) {
 	timeoutctx, cancel := context.WithTimeout(ctx, p.provider.GetTimeout())
 	defer cancel()
 
@@ -61,7 +61,7 @@ func (p *EventRepository) CreateEvent(ctx context.Context, req *eventModel.Creat
 	}
 
 	now := time.Now()
-	data := &eventModel.Events{
+	data := &eventModel.Event{
 		EventName:   req.EventName,
 		Description: req.Description,
 		Options:     req.Options,
@@ -86,13 +86,15 @@ func (p *EventRepository) UpdateEvent(ctx context.Context, req *eventModel.Updat
 
 	query := p.provider.GetDB().WithContext(timeoutctx).Debug().Table("public.events")
 
+	query = query.Where("event_id = ?", req.EventID)
+
 	userInt, userIntErr := strconv.ParseInt(req.UserID, 0, 64)
 	if userIntErr != nil {
 		return userIntErr
 	}
 
 	now := time.Now()
-	data := &eventModel.Events{
+	data := &eventModel.Event{
 		EventName:   req.EventName,
 		Description: req.Description,
 		Options:     req.Options,
@@ -100,6 +102,7 @@ func (p *EventRepository) UpdateEvent(ctx context.Context, req *eventModel.Updat
 		EndDate:     req.EndDate,
 		ProjectID:   userInt,
 		UpdatedAt:   &now,
+		UpdatedById: userInt,
 	}
 
 	if err := query.Updates(data).Error; err != nil {
@@ -109,7 +112,7 @@ func (p *EventRepository) UpdateEvent(ctx context.Context, req *eventModel.Updat
 	return nil
 }
 
-func (p *EventRepository) GetEventByID(ctx context.Context, eventID string, userID string) (data *eventModel.Events, err error) {
+func (p *EventRepository) GetEventByID(ctx context.Context, eventID string, userID string) (data *eventModel.Event, err error) {
 	timeoutctx, cancel := context.WithTimeout(ctx, p.provider.GetTimeout())
 	defer cancel()
 

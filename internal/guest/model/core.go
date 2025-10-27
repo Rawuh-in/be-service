@@ -1,1 +1,1 @@
-package guest_model
+package model

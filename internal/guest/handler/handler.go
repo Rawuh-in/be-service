@@ -1,4 +1,4 @@
-package guest_handler
+package handler
 
 import (
 	"encoding/json"
@@ -69,7 +69,7 @@ func (h *GuestHandler) UpdateGuestByID(w http.ResponseWriter, r *http.Request) {
 		Message: "Success Update Guest",
 	}
 
-	var p guestModel.Guests
+	var p guestModel.UpdateGuestRequest
 	if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
 		result.Error = true
 		result.Code = http.StatusInternalServerError
