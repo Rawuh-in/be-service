@@ -105,8 +105,12 @@ func (p *EventRepository) UpdateEvent(ctx context.Context, req *eventModel.Updat
 		UpdatedById: userInt,
 	}
 
-	if err := query.Updates(data).Error; err != nil {
-		return err
+	res := query.Updates(data)
+	if res.Error != nil {
+		return res.Error
+	}
+	if res.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
 	}
 
 	return nil
@@ -120,7 +124,7 @@ func (p *EventRepository) GetEventByID(ctx context.Context, eventID string, proj
 
 	query = query.Where("project_id = ? and event_id = ?", projectID, eventID)
 
-	if err := query.Debug().Find(&data).Error; err != nil {
+	if err := query.Debug().First(&data).Error; err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, err
 		}
@@ -136,13 +140,13 @@ func (p *EventRepository) DeleteEventByID(ctx context.Context, eventID string, p
 
 	query := p.provider.GetDB().WithContext(timeoutctx).Debug().Table("public.events")
 
-	tx := query.Where("project_id = ? and event_id = ?", projectID, eventID)
+	query = query.Where("project_id = ? and event_id = ?", projectID, eventID)
 
-	if tx.Error != nil {
-		return tx.Error
+	res := query.Delete(&eventModel.Event{})
+	if res.Error != nil {
+		return res.Error
 	}
-
-	if tx.RowsAffected == 0 {
+	if res.RowsAffected == 0 {
 		return gorm.ErrRecordNotFound
 	}
 

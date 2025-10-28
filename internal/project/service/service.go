@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/base64"
+	"errors"
 	"net/http"
 	projectModel "rawuh-service/internal/project/model"
 	projectDb "rawuh-service/internal/project/repository"
@@ -18,6 +19,7 @@ import (
 	"go.elastic.co/apm/v2"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"gorm.io/gorm"
 )
 
 type ProjectService interface {
@@ -218,6 +220,11 @@ func (s *projectService) DeleteProject(ctx context.Context, req *projectModel.De
 
 	err := s.dbProvider.DeleteProject(ctx, req)
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			loggerZap.Warn("project not found", err)
+			return status.Error(codes.NotFound, "Project not found")
+		}
+
 		s.logger.Error("err DeleteProject ", err)
 		return status.Error(codes.Internal, "Internal Server Error")
 	}
@@ -246,6 +253,11 @@ func (s *projectService) GetProjectDetail(ctx context.Context, req *projectModel
 	if err != nil {
 		s.logger.Error("err GetProjectDetail ", err)
 		return nil, status.Error(codes.Internal, "Internal Server Error")
+	}
+
+	if project == nil || project.ProjectID == 0 {
+		loggerZap.Info("project not found", nil)
+		return nil, status.Errorf(codes.NotFound, "project not found")
 	}
 
 	s.logger.Info("Success GetProjectDetail")

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	eventModel "rawuh-service/internal/event/model"
@@ -20,12 +21,13 @@ import (
 	"go.elastic.co/apm/v2"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"gorm.io/gorm"
 )
 
 type EventService interface {
 	ListEvent(ctx context.Context, req *eventModel.ListEventRequest) (*eventModel.ListEventResponse, error)
 	DetailEvent(ctx context.Context, req *eventModel.DetailEventRequest) (*eventModel.DetailEventResponse, error)
-	DeleteEvent(ctx context.Context, req *eventModel.DeleteEventRequest) (*eventModel.DeleteEventResponse, error)
+	DeleteEvent(ctx context.Context, req *eventModel.DeleteEventRequest) error
 	AddEvent(ctx context.Context, req *eventModel.CreateEventRequest) error
 	UpdateEvent(ctx context.Context, req *eventModel.UpdateEventRequest) error
 }
@@ -148,6 +150,11 @@ func (s *eventService) DetailEvent(ctx context.Context, req *eventModel.DetailEv
 		return nil, status.Error(codes.Internal, "Internal Server Error")
 	}
 
+	if event == nil || event.EventID == 0 {
+		loggerZap.Info("event not found", nil)
+		return nil, status.Errorf(codes.NotFound, "event not found")
+	}
+
 	loggerZap.Info("Start making response")
 
 	result := &eventModel.DetailEventResponse{
@@ -160,7 +167,7 @@ func (s *eventService) DetailEvent(ctx context.Context, req *eventModel.DetailEv
 	return result, nil
 }
 
-func (s *eventService) DeleteEvent(ctx context.Context, req *eventModel.DeleteEventRequest) (*eventModel.DeleteEventResponse, error) {
+func (s *eventService) DeleteEvent(ctx context.Context, req *eventModel.DeleteEventRequest) error {
 	funcName := "DeleteEvent"
 	span, ctx := apm.StartSpan(ctx, funcName, constant.SpanTypeProccess)
 	span.Action = constant.SpanActionExecute
@@ -173,22 +180,22 @@ func (s *eventService) DeleteEvent(ctx context.Context, req *eventModel.DeleteEv
 
 	if req.EventsID == "" || req.ProjectID == "" {
 		loggerZap.Error("Access denied with user_id  : ", nil)
-		return nil, status.Errorf(codes.PermissionDenied, "Permission Denied")
+		return status.Errorf(codes.PermissionDenied, "Permission Denied")
 	}
 
 	loggerZap.Info("Start ListEvent")
-	err := s.dbProvider.DeleteEventByID(ctx, req.ProjectID, req.EventsID)
+	err := s.dbProvider.DeleteEventByID(ctx, req.EventsID, req.ProjectID)
 	if err != nil {
-		loggerZap.Error("err ListEvent ", err)
-		return nil, status.Error(codes.Internal, "Internal Server Error")
-	}
-	result := &eventModel.DeleteEventResponse{
-		Error:   false,
-		Code:    http.StatusOK,
-		Message: "Success",
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			loggerZap.Warn("event not found", err)
+			return status.Error(codes.NotFound, "Event not found")
+		}
+
+		s.logger.Error("err DeleteEventByID ", err)
+		return status.Error(codes.Internal, "Internal Server Error")
 	}
 
-	return result, nil
+	return nil
 }
 
 func (s *eventService) AddEvent(ctx context.Context, req *eventModel.CreateEventRequest) error {
@@ -229,16 +236,19 @@ func (s *eventService) AddEvent(ctx context.Context, req *eventModel.CreateEvent
 	}
 
 	loggerZap.Info("Start AddEvent with data ", req)
-	var optionStr map[string]interface{}
-	if err := json.Unmarshal([]byte(req.Options), &optionStr); err != nil {
-		return fmt.Errorf("invalid JSON format: %w", err)
+
+	if req.Options != "" {
+		var optionStr map[string]interface{}
+		if err := json.Unmarshal([]byte(req.Options), &optionStr); err != nil {
+			return fmt.Errorf("invalid JSON format: %w", err)
+		}
+
+		utils.SanitizeJSON(optionStr)
+		optionData, _ := json.Marshal(optionStr)
+		req.Options = string(optionData)
+	} else {
+		req.Options = "{}"
 	}
-
-	utils.SanitizeJSON(optionStr)
-
-	optionData, _ := json.Marshal(optionStr)
-
-	req.Options = string(optionData)
 
 	err := s.dbProvider.CreateEvent(ctx, req)
 	if err != nil {
@@ -285,16 +295,21 @@ func (s *eventService) UpdateEvent(ctx context.Context, req *eventModel.UpdateEv
 		}
 	}
 	loggerZap.Info("Start UpdateEvent with data ", req)
-	var optionStr map[string]interface{}
-	if err := json.Unmarshal([]byte(req.Options), &optionStr); err != nil {
-		return fmt.Errorf("invalid JSON format: %w", err)
+
+	if req.Options != "" {
+		var optionStr map[string]interface{}
+		if err := json.Unmarshal([]byte(req.Options), &optionStr); err != nil {
+			return fmt.Errorf("invalid JSON format: %w", err)
+		}
+
+		utils.SanitizeJSON(optionStr)
+
+		optionData, _ := json.Marshal(optionStr)
+
+		req.Options = string(optionData)
+	} else {
+		req.Options = "{}"
 	}
-
-	utils.SanitizeJSON(optionStr)
-
-	optionData, _ := json.Marshal(optionStr)
-
-	req.Options = string(optionData)
 
 	err := s.dbProvider.UpdateEvent(ctx, req)
 	if err != nil {

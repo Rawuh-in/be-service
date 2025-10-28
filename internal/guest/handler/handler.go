@@ -45,8 +45,8 @@ func (h *GuestHandler) AddGuest(w http.ResponseWriter, r *http.Request) {
 		Address:   p.Address,
 		Phone:     p.Phone,
 		Email:     p.Email,
-		EventId:   p.EventId,
 		Options:   p.Options,
+		EventId:   mux.Vars(r)["event_id"],
 		ProjectID: mux.Vars(r)["project_id"],
 	}
 	if err := h.svc.AddGuest(ctx, req); err != nil {
@@ -190,7 +190,7 @@ func (h *GuestHandler) DeleteGuestByID(w http.ResponseWriter, r *http.Request) {
 		ProjectID: mux.Vars(r)["project_id"],
 	}
 
-	guest, err := h.svc.DeleteGuestByID(ctx, req)
+	err := h.svc.DeleteGuestByID(ctx, req)
 	if err != nil {
 		utils.HandleGrpcError(w, err)
 		return
@@ -200,5 +200,5 @@ func (h *GuestHandler) DeleteGuestByID(w http.ResponseWriter, r *http.Request) {
 	result.Code = http.StatusOK
 	w.Header().Add("content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(guest)
+	json.NewEncoder(w).Encode(result)
 }

@@ -42,6 +42,7 @@ func (p *GuestRepository) CreateGuest(ctx context.Context, req *guestModel.Creat
 		EventId:   eventID,
 		CreatedAt: &now,
 		UpdatedAt: &now,
+		Options:   req.Options,
 	}
 
 	if err := query.Omit("guest_id").Create(data).Error; err != nil {
@@ -65,12 +66,17 @@ func (p *GuestRepository) UpdateGuest(ctx context.Context, req *guestModel.Updat
 		Address: req.Address,
 		Phone:   req.Phone,
 		Email:   req.Email,
+		Options: req.Options,
 		// EventId:   req.EventId,
 		UpdatedAt: &now,
 	}
 
-	if err := query.Updates(data).Error; err != nil {
-		return err
+	res := query.Updates(data)
+	if res.Error != nil {
+		return res.Error
+	}
+	if res.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
 	}
 
 	return nil
@@ -82,17 +88,16 @@ func (p *GuestRepository) GetGuestByID(ctx context.Context, guestID string, proj
 
 	var data guestModel.Guest
 
-	err := p.provider.GetDB().WithContext(timeoutctx).Debug().
-		Table("public.guests").
-		Where("project_id = ? and guest_id = ? and event_id = ?", projectID, guestID, eventID).
-		First(&data).Error
+	query := p.provider.GetDB().WithContext(timeoutctx).Debug().
+		Table("public.guests")
 
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return &guestModel.Guest{}, nil
+	query = query.Where("project_id = ? and guest_id = ? and event_id = ?", projectID, guestID, eventID)
+
+	if err := query.Debug().Find(&data).Error; err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, err
 		}
 
-		return nil, err
 	}
 
 	return &data, nil
@@ -102,15 +107,17 @@ func (p *GuestRepository) DeleteGuestByID(ctx context.Context, guestID string, p
 	timeoutctx, cancel := context.WithTimeout(ctx, p.provider.GetTimeout())
 	defer cancel()
 
-	db := p.provider.GetDB().WithContext(timeoutctx).Debug().Table("public.guests")
+	query := p.provider.GetDB().WithContext(timeoutctx).Debug().Table("public.guests")
 
-	tx := db.Where("project_id = ? AND guest_id = ? AND event_id = ?", projectID, guestID, eventID).Delete(&guestModel.Guest{})
+	query = query.Where("project_id = ? AND guest_id = ? AND event_id = ?", projectID, guestID, eventID)
 
-	if tx.Error != nil {
-		return tx.Error
+	res := query.Delete(&guestModel.Guest{})
+
+	if res.Error != nil {
+		return res.Error
 	}
 
-	if tx.RowsAffected == 0 {
+	if res.RowsAffected == 0 {
 		return gorm.ErrRecordNotFound
 	}
 
@@ -134,7 +141,7 @@ func (p *GuestRepository) ListGuests(ctx context.Context, projectID string, even
 		db.Sort(sort),
 	)
 
-	if err := query.Debug().Find(&data).Error; err != nil {
+	if err := query.Debug().First(&data).Error; err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, err
 		}

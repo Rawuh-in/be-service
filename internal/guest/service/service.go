@@ -29,7 +29,7 @@ type GuestService interface {
 	AddGuest(ctx context.Context, p *guestModel.CreateGuestRequest) error
 	UpdateGuestByID(ctx context.Context, p *guestModel.UpdateGuestRequest) error
 	GetGuestByID(ctx context.Context, req *guestModel.GetGuestByIDRequest) (*guestModel.GetGuestByIDResponse, error)
-	DeleteGuestByID(ctx context.Context, req *guestModel.DeleteGuestByIDRequest) (*guestModel.DeleteGuestByIDResponse, error)
+	DeleteGuestByID(ctx context.Context, req *guestModel.DeleteGuestByIDRequest) error
 	ListGuests(ctx context.Context, req *guestModel.ListGuestRequest) (*guestModel.ListGuestResponse, error)
 }
 
@@ -87,16 +87,19 @@ func (s *guestService) AddGuest(ctx context.Context, req *guestModel.CreateGuest
 
 	loggerZap.Info("Start CreateGuest with data ", req)
 
-	var optionStr map[string]interface{}
-	if err := json.Unmarshal([]byte(req.Options), &optionStr); err != nil {
-		return fmt.Errorf("invalid JSON format: %w", err)
+	if req.Options != "" {
+
+		var optionStr map[string]interface{}
+		if err := json.Unmarshal([]byte(req.Options), &optionStr); err != nil {
+			return fmt.Errorf("invalid JSON format: %w", err)
+		}
+
+		utils.SanitizeJSON(optionStr)
+		optionData, _ := json.Marshal(optionStr)
+		req.Options = string(optionData)
+	} else {
+		req.Options = "{}"
 	}
-
-	utils.SanitizeJSON(optionStr)
-
-	optionData, _ := json.Marshal(optionStr)
-
-	req.Options = string(optionData)
 
 	err := s.dbProvider.CreateGuest(ctx, req)
 	if err != nil {
@@ -147,16 +150,18 @@ func (s *guestService) UpdateGuestByID(ctx context.Context, req *guestModel.Upda
 		}
 	}
 
-	var optionStr map[string]interface{}
-	if err := json.Unmarshal([]byte(req.Options), &optionStr); err != nil {
-		return fmt.Errorf("invalid JSON format: %w", err)
+	if req.Options != "" {
+		var optionStr map[string]interface{}
+		if err := json.Unmarshal([]byte(req.Options), &optionStr); err != nil {
+			return fmt.Errorf("invalid JSON format: %w", err)
+		}
+
+		utils.SanitizeJSON(optionStr)
+		optionData, _ := json.Marshal(optionStr)
+		req.Options = string(optionData)
+	} else {
+		req.Options = "{}"
 	}
-
-	utils.SanitizeJSON(optionStr)
-
-	optionData, _ := json.Marshal(optionStr)
-
-	req.Options = string(optionData)
 
 	loggerZap.Info("Start UpdateGuest with data ", req)
 
@@ -270,8 +275,13 @@ func (s *guestService) GetGuestByID(ctx context.Context, req *guestModel.GetGues
 	loggerZap.Info("Start GetGuestByID")
 	guest, err := s.dbProvider.GetGuestByID(ctx, req.GuestID, req.ProjectID, req.EventId)
 	if err != nil {
-		loggerZap.Error("err ListGuests ", err)
+		loggerZap.Error("err GetGuestByID ", err)
 		return nil, status.Error(codes.Internal, "Internal Server Error")
+	}
+
+	if guest == nil || guest.ProjectID == 0 {
+		loggerZap.Info("GetGuestByID not found", nil)
+		return nil, status.Errorf(codes.NotFound, "guest not found")
 	}
 
 	loggerZap.Info("Start making response")
@@ -286,7 +296,7 @@ func (s *guestService) GetGuestByID(ctx context.Context, req *guestModel.GetGues
 	return result, nil
 
 }
-func (s *guestService) DeleteGuestByID(ctx context.Context, req *guestModel.DeleteGuestByIDRequest) (*guestModel.DeleteGuestByIDResponse, error) {
+func (s *guestService) DeleteGuestByID(ctx context.Context, req *guestModel.DeleteGuestByIDRequest) error {
 	funcName := "ListProjects"
 	span, ctx := apm.StartSpan(ctx, funcName, constant.SpanTypeProccess)
 	span.Action = constant.SpanActionExecute
@@ -298,27 +308,23 @@ func (s *guestService) DeleteGuestByID(ctx context.Context, req *guestModel.Dele
 
 	if req.EventId == "" || req.GuestID == "" {
 		loggerZap.Error("err Invalid event id : ", nil)
-		return nil, status.Errorf(codes.InvalidArgument, "Invalid Event Id")
+		return status.Errorf(codes.InvalidArgument, "Invalid Event Id")
 	}
 
 	loggerZap.Info("Start DeleteGuestByID")
 	err := s.dbProvider.DeleteGuestByID(ctx, req.GuestID, req.ProjectID, req.EventId)
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, status.Errorf(codes.NotFound, "Guest not found for event_id %s and guest_id %s", req.EventId, req.GuestID)
-	}
 	if err != nil {
-		loggerZap.Error("err DeleteGuestByID ", err)
-		return nil, status.Error(codes.Internal, "Internal Server Error")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			loggerZap.Warn("guest not found", err)
+			return status.Error(codes.NotFound, "Guest not found")
+		}
+
+		s.logger.Error("err DeleteGuestByID ", err)
+		return status.Error(codes.Internal, "Internal Server Error")
 	}
 
 	loggerZap.Info("Start making response")
 
-	result := &guestModel.DeleteGuestByIDResponse{
-		Error:   false,
-		Code:    http.StatusOK,
-		Message: "Success",
-	}
-
-	return result, nil
+	return nil
 
 }

@@ -190,7 +190,7 @@ func (h *ProjectHandler) DetailProject(w http.ResponseWriter, r *http.Request) {
 		ProjectID: mux.Vars(r)["project_id"],
 	}
 
-	guests, err := h.svc.GetProjectDetail(ctx, req)
+	project, err := h.svc.GetProjectDetail(ctx, req)
 
 	if err != nil {
 		utils.HandleGrpcError(w, err)
@@ -200,5 +200,5 @@ func (h *ProjectHandler) DetailProject(w http.ResponseWriter, r *http.Request) {
 	result.Code = http.StatusOK
 	w.Header().Add("content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(guests)
+	json.NewEncoder(w).Encode(project)
 }

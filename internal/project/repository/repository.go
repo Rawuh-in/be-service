@@ -93,8 +93,12 @@ func (p *ProjectRepository) UpdateProject(ctx context.Context, req *projectModel
 		UpdatedAt:   &now,
 	}
 
-	if err := query.Updates(data).Error; err != nil {
-		return err
+	res := query.Updates(data)
+	if res.Error != nil {
+		return res.Error
+	}
+	if res.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
 	}
 
 	return nil
@@ -105,15 +109,18 @@ func (p *ProjectRepository) DeleteProject(ctx context.Context, req *projectModel
 	defer cancel()
 
 	query := p.provider.GetDB().WithContext(timeoutctx).Debug().Table("public.projects")
-
 	query = query.Where("project_id = ?", req.ProjectID)
 
-	if err := query.Delete(&projectModel.Project{}).Error; err != nil {
-		return err
+	res := query.Delete(&projectModel.Project{})
+	if res.Error != nil {
+		return res.Error
+	}
+
+	if res.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
 	}
 
 	return nil
-
 }
 
 func (p *ProjectRepository) GetProjectDetail(ctx context.Context, req *projectModel.GetProjectDetailRequest) (*projectModel.Project, error) {
@@ -125,7 +132,10 @@ func (p *ProjectRepository) GetProjectDetail(ctx context.Context, req *projectMo
 	query = query.Where("project_id = ?", req.ProjectID)
 
 	var project projectModel.Project
-	if err := query.First(&project).Error; err != nil {
+	if err := query.Debug().Find(&project).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, gorm.ErrRecordNotFound
+		}
 		return nil, err
 	}
 

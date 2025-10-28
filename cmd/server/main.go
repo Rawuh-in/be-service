@@ -1,8 +1,10 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
+	"os"
 	eventHandler "rawuh-service/internal/event/handler"
 	eventDb "rawuh-service/internal/event/repository"
 	eventService "rawuh-service/internal/event/service"
@@ -20,6 +22,7 @@ import (
 	"rawuh-service/internal/shared/router"
 	"strconv"
 
+	"github.com/jackc/pgx/v4"
 	"github.com/joho/godotenv"
 )
 
@@ -47,9 +50,32 @@ func main() {
 		ProcessId:     utils.GetEnv("PROCESS_ID", "rawuh-service-1"),
 	})
 
+	chosenDSN := os.Getenv("DB_DSN")
+	if chosenDSN == "" {
+		chosenDSN = os.Getenv("DATABASE_URL")
+	}
+
+	if chosenDSN == "" {
+		chosenDSN = appConfig.Dsn
+	}
+
+	appConfig.Dsn = chosenDSN
 	zapLog.Info("Start connecting to db ", appConfig.Dsn)
 
-	gormDB, err := config.InitDB(appConfig.Dsn)
+	conn, err := pgx.Connect(context.Background(), chosenDSN)
+	if err != nil {
+		log.Fatalf("Failed to connect to the database: %v", err)
+	}
+	defer conn.Close(context.Background())
+
+	var version string
+	if err := conn.QueryRow(context.Background(), "SELECT version()").Scan(&version); err != nil {
+		log.Fatalf("Query failed: %v", err)
+	}
+
+	log.Println("Connected to:", version)
+
+	gormDB, err := config.InitDB(chosenDSN)
 	if err != nil {
 		zapLog.Fatal("Failed to connect to DB:", err)
 	}
