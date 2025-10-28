@@ -22,13 +22,13 @@ func NewEventRepository(provider *db.GormProvider) *EventRepository {
 	}
 }
 
-func (p *EventRepository) ListEvent(ctx context.Context, participantID string, userID string, pagination *model.PaginationResponse, sql *db.QueryBuilder, sort *model.Sort) (data []*eventModel.Event, err error) {
+func (p *EventRepository) ListEvent(ctx context.Context, projecyID string, pagination *model.PaginationResponse, sql *db.QueryBuilder, sort *model.Sort) (data []*eventModel.Event, err error) {
 	timeoutctx, cancel := context.WithTimeout(ctx, p.provider.GetTimeout())
 	defer cancel()
 
 	query := p.provider.GetDB().WithContext(timeoutctx).Debug().Table("public.events")
 
-	query = query.Where("created_by_id = ? OR ? = ANY(participant_ids)", userID, participantID)
+	query = query.Where("project_id = ?", projecyID)
 
 	query = query.Scopes(
 		db.QueryScoop(sql.CollectiveAnd),
@@ -112,13 +112,13 @@ func (p *EventRepository) UpdateEvent(ctx context.Context, req *eventModel.Updat
 	return nil
 }
 
-func (p *EventRepository) GetEventByID(ctx context.Context, eventID string, userID string) (data *eventModel.Event, err error) {
+func (p *EventRepository) GetEventByID(ctx context.Context, eventID string, projectID string) (data *eventModel.Event, err error) {
 	timeoutctx, cancel := context.WithTimeout(ctx, p.provider.GetTimeout())
 	defer cancel()
 
 	query := p.provider.GetDB().WithContext(timeoutctx).Debug().Table("public.events")
 
-	query = query.Where("event_id = ? AND (created_by_id = ? OR ? = ANY(participant_ids))", eventID, userID, userID)
+	query = query.Where("project_id = ? and event_id = ?", projectID, eventID)
 
 	if err := query.Debug().Find(&data).Error; err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -130,13 +130,13 @@ func (p *EventRepository) GetEventByID(ctx context.Context, eventID string, user
 
 }
 
-func (p *EventRepository) DeleteEventByID(ctx context.Context, eventID string, userID string) error {
+func (p *EventRepository) DeleteEventByID(ctx context.Context, eventID string, projectID string) error {
 	timeoutctx, cancel := context.WithTimeout(ctx, p.provider.GetTimeout())
 	defer cancel()
 
 	query := p.provider.GetDB().WithContext(timeoutctx).Debug().Table("public.events")
 
-	tx := query.Where("event_id = ? AND (created_by_id = ? OR ? = ANY(participant_ids))", eventID, userID, userID)
+	tx := query.Where("project_id = ? and event_id = ?", projectID, eventID)
 
 	if tx.Error != nil {
 		return tx.Error

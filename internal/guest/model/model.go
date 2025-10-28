@@ -8,8 +8,9 @@ type Guest struct {
 	Address   string     `gorm:"type:varchar(500)"`
 	Phone     string     `gorm:"type:varchar(500)"`
 	Email     string     `gorm:"type:varchar(500)"`
-	EventId   string     `gorm:"type:varchar(500)"`
+	EventId   int64      `gorm:"type:integer"`
 	CreatedAt *time.Time `gorm:"type:timestamp"`
 	UpdatedAt *time.Time `gorm:"type:timestamp"`
-	ProjectID int64      `gorm:"type:integer[]"`
+	ProjectID int64      `gorm:"type:integer"`
+	Options   string     `gorm:"type:text"`
 }

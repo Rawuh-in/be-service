@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -86,6 +87,17 @@ func (s *guestService) AddGuest(ctx context.Context, req *guestModel.CreateGuest
 
 	loggerZap.Info("Start CreateGuest with data ", req)
 
+	var optionStr map[string]interface{}
+	if err := json.Unmarshal([]byte(req.Options), &optionStr); err != nil {
+		return fmt.Errorf("invalid JSON format: %w", err)
+	}
+
+	utils.SanitizeJSON(optionStr)
+
+	optionData, _ := json.Marshal(optionStr)
+
+	req.Options = string(optionData)
+
 	err := s.dbProvider.CreateGuest(ctx, req)
 	if err != nil {
 		loggerZap.Error("err CreateGuest ", err)
@@ -134,6 +146,17 @@ func (s *guestService) UpdateGuestByID(ctx context.Context, req *guestModel.Upda
 			return status.Errorf(codes.Aborted, "%s", fmt.Sprint("characters not allowed in field Address", req.Address))
 		}
 	}
+
+	var optionStr map[string]interface{}
+	if err := json.Unmarshal([]byte(req.Options), &optionStr); err != nil {
+		return fmt.Errorf("invalid JSON format: %w", err)
+	}
+
+	utils.SanitizeJSON(optionStr)
+
+	optionData, _ := json.Marshal(optionStr)
+
+	req.Options = string(optionData)
 
 	loggerZap.Info("Start UpdateGuest with data ", req)
 
@@ -210,7 +233,7 @@ func (s *guestService) ListGuests(ctx context.Context, req *guestModel.ListGuest
 	}
 
 	loggerZap.Info("Start ListGuests")
-	guest, err := s.dbProvider.ListGuests(ctx, req.EventId, pagination, sqlBuilder, sort)
+	guest, err := s.dbProvider.ListGuests(ctx, req.EventId, req.ProjectID, pagination, sqlBuilder, sort)
 	if err != nil {
 		s.logger.Error("err ListGuests ", err)
 		return nil, status.Error(codes.Internal, "Internal Server Error")
@@ -245,7 +268,7 @@ func (s *guestService) GetGuestByID(ctx context.Context, req *guestModel.GetGues
 	}
 
 	loggerZap.Info("Start GetGuestByID")
-	guest, err := s.dbProvider.GetGuestByID(ctx, req.GuestID, req.EventId)
+	guest, err := s.dbProvider.GetGuestByID(ctx, req.GuestID, req.ProjectID, req.EventId)
 	if err != nil {
 		loggerZap.Error("err ListGuests ", err)
 		return nil, status.Error(codes.Internal, "Internal Server Error")
@@ -279,7 +302,7 @@ func (s *guestService) DeleteGuestByID(ctx context.Context, req *guestModel.Dele
 	}
 
 	loggerZap.Info("Start DeleteGuestByID")
-	err := s.dbProvider.DeleteGuestByID(ctx, req.GuestID, req.EventId)
+	err := s.dbProvider.DeleteGuestByID(ctx, req.GuestID, req.ProjectID, req.EventId)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, status.Errorf(codes.NotFound, "Guest not found for event_id %s and guest_id %s", req.EventId, req.GuestID)
 	}

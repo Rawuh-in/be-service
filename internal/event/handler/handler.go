@@ -41,12 +41,12 @@ func (h *EventHandler) ListEvent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	req := &eventModel.ListEventRequest{
-		Page:   int32(page),
-		Limit:  int32(limit),
-		Sort:   queryParams.Get("sort"),
-		Dir:    queryParams.Get("dir"),
-		Query:  queryParams.Get("query"),
-		UserID: mux.Vars(r)["user_id"],
+		Page:      int32(page),
+		Limit:     int32(limit),
+		Sort:      queryParams.Get("sort"),
+		Dir:       queryParams.Get("dir"),
+		Query:     queryParams.Get("query"),
+		ProjectID: mux.Vars(r)["project_id"],
 	}
 
 	guests, err := h.svc.ListEvent(ctx, req)
@@ -84,8 +84,8 @@ func (h *EventHandler) DetailEvent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	req := &eventModel.DetailEventRequest{
-		EventsID: mux.Vars(r)["event_id"],
-		UserID:   mux.Vars(r)["user_id"],
+		EventsID:  mux.Vars(r)["event_id"],
+		ProjectID: mux.Vars(r)["project_id"],
 	}
 
 	guests, err := h.svc.DetailEvent(ctx, req)
@@ -128,6 +128,7 @@ func (h *EventHandler) AddEvent(w http.ResponseWriter, r *http.Request) {
 		StartDate:   p.StartDate,
 		EndDate:     p.EndDate,
 		UserID:      p.UserID,
+		ProjectID:   mux.Vars(r)["project_id"],
 	}
 
 	if err := h.svc.AddEvent(ctx, req); err != nil {
@@ -164,6 +165,8 @@ func (h *EventHandler) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	req := &eventModel.UpdateEventRequest{
+		ProjectID:   mux.Vars(r)["project_id"],
+		EventID:     mux.Vars(r)["event_id"],
 		EventName:   p.EventName,
 		Description: p.Description,
 		Options:     p.Options,
@@ -195,8 +198,9 @@ func (h *EventHandler) DeleteEvent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	req := &eventModel.DeleteEventRequest{
-		EventsID: mux.Vars(r)["event_id"],
-		UserID:   mux.Vars(r)["user_id"],
+		EventsID:  mux.Vars(r)["event_id"],
+		UserID:    mux.Vars(r)["user_id"],
+		ProjectID: mux.Vars(r)["project_id"],
 	}
 
 	event, err := h.svc.DeleteEvent(ctx, req)

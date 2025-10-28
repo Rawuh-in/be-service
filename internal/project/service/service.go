@@ -180,13 +180,13 @@ func (s *projectService) UpdateProject(ctx context.Context, req *projectModel.Up
 		return status.Errorf(codes.Aborted, "project name maximum characters is %d", nameLength)
 	}
 
-	if req.Status == 0 {
-		return status.Errorf(codes.Aborted, "status is empty")
-	}
+	// if req.Status == 0 {
+	// 	return status.Errorf(codes.Aborted, "status is empty")
+	// }
 
-	if utils.IsEmptyString(req.StatusDesc) {
-		return status.Errorf(codes.Aborted, "status description is empty")
-	}
+	// if utils.IsEmptyString(req.StatusDesc) {
+	// 	return status.Errorf(codes.Aborted, "status description is empty")
+	// }
 
 	loggerZap.Info("Start UpdateProject with data ", req)
 

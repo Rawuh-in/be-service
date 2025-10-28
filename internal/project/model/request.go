@@ -1,6 +1,8 @@
 package model
 
-import "rawuh-service/internal/shared/model"
+import (
+	"rawuh-service/internal/shared/model"
+)
 
 type ListProjectRequest struct {
 	Page    int32  `json:"page"`
@@ -36,6 +38,7 @@ type UpdateProjectRequest struct {
 	ProjectID   string
 	Status      int32
 	StatusDesc  string
+	Options     string
 }
 
 type UpdateProjectResponse struct {

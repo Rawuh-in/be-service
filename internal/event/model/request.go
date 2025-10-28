@@ -6,12 +6,12 @@ import (
 )
 
 type ListEventRequest struct {
-	Page   int32  `json:"page"`
-	Limit  int32  `json:"limit"`
-	Sort   string `json:"sort"`
-	Dir    string `json:"dir"`
-	Query  string `json:"query"`
-	UserID string
+	Page      int32  `json:"page"`
+	Limit     int32  `json:"limit"`
+	Sort      string `json:"sort"`
+	Dir       string `json:"dir"`
+	Query     string `json:"query"`
+	ProjectID string
 }
 
 type ListEventResponse struct {
@@ -29,6 +29,7 @@ type CreateEventRequest struct {
 	StartDate   *time.Time
 	EndDate     *time.Time
 	UserID      string
+	ProjectID   string
 }
 
 type CreateEventResponse struct {
@@ -38,6 +39,7 @@ type CreateEventResponse struct {
 }
 
 type UpdateEventRequest struct {
+	ProjectID   string
 	EventID     string
 	EventName   string
 	Description string
@@ -54,8 +56,8 @@ type UpdateEventResponse struct {
 }
 
 type DetailEventRequest struct {
-	EventsID string
-	UserID   string
+	EventsID  string
+	ProjectID string
 }
 
 type DetailEventResponse struct {
@@ -66,8 +68,9 @@ type DetailEventResponse struct {
 }
 
 type DeleteEventRequest struct {
-	EventsID string
-	UserID   string
+	EventsID  string
+	ProjectID string
+	UserID    string
 }
 
 type DeleteEventResponse struct {

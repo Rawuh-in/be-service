@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"errors"
+	"strconv"
 	"time"
 
 	guestModel "rawuh-service/internal/guest/model"
@@ -28,13 +29,17 @@ func (p *GuestRepository) CreateGuest(ctx context.Context, req *guestModel.Creat
 
 	query := p.provider.GetDB().WithContext(timeoutctx).Debug().Table("public.guests")
 
+	projectID, _ := strconv.ParseInt(req.ProjectID, 0, 64)
+	eventID, _ := strconv.ParseInt(req.EventId, 0, 64)
+
 	now := time.Now()
 	data := &guestModel.Guest{
+		ProjectID: projectID,
 		Name:      req.Name,
 		Address:   req.Address,
 		Phone:     req.Phone,
 		Email:     req.Email,
-		EventId:   req.EventId,
+		EventId:   eventID,
 		CreatedAt: &now,
 		UpdatedAt: &now,
 	}
@@ -52,7 +57,7 @@ func (p *GuestRepository) UpdateGuest(ctx context.Context, req *guestModel.Updat
 
 	query := p.provider.GetDB().WithContext(timeoutctx).Debug().Table("public.guests")
 
-	query = query.Where("guest_id = ? and event_id = ?", req.GuestID, req.EventId)
+	query = query.Where("project_id = ? and guest_id = ? and event_id = ?", req.ProjectID, req.GuestID, req.EventId)
 
 	now := time.Now()
 	data := &guestModel.Guest{
@@ -71,7 +76,7 @@ func (p *GuestRepository) UpdateGuest(ctx context.Context, req *guestModel.Updat
 	return nil
 }
 
-func (p *GuestRepository) GetGuestByID(ctx context.Context, guest_id string, event_id string) (*guestModel.Guest, error) {
+func (p *GuestRepository) GetGuestByID(ctx context.Context, guestID string, projectID string, eventID string) (*guestModel.Guest, error) {
 	timeoutctx, cancel := context.WithTimeout(ctx, p.provider.GetTimeout())
 	defer cancel()
 
@@ -79,7 +84,7 @@ func (p *GuestRepository) GetGuestByID(ctx context.Context, guest_id string, eve
 
 	err := p.provider.GetDB().WithContext(timeoutctx).Debug().
 		Table("public.guests").
-		Where("guest_id = ? and event_id = ?", guest_id, event_id).
+		Where("project_id = ? and guest_id = ? and event_id = ?", projectID, guestID, eventID).
 		First(&data).Error
 
 	if err != nil {
@@ -93,13 +98,13 @@ func (p *GuestRepository) GetGuestByID(ctx context.Context, guest_id string, eve
 	return &data, nil
 }
 
-func (p *GuestRepository) DeleteGuestByID(ctx context.Context, guestID string, eventID string) error {
+func (p *GuestRepository) DeleteGuestByID(ctx context.Context, guestID string, projectID string, eventID string) error {
 	timeoutctx, cancel := context.WithTimeout(ctx, p.provider.GetTimeout())
 	defer cancel()
 
 	db := p.provider.GetDB().WithContext(timeoutctx).Debug().Table("public.guests")
 
-	tx := db.Where("guest_id = ? AND event_id = ?", guestID, eventID).Delete(&guestModel.Guest{})
+	tx := db.Where("project_id = ? AND guest_id = ? AND event_id = ?", projectID, guestID, eventID).Delete(&guestModel.Guest{})
 
 	if tx.Error != nil {
 		return tx.Error
@@ -112,13 +117,13 @@ func (p *GuestRepository) DeleteGuestByID(ctx context.Context, guestID string, e
 	return nil
 }
 
-func (p *GuestRepository) ListGuests(ctx context.Context, event_id string, pagination *model.PaginationResponse, sql *db.QueryBuilder, sort *model.Sort) (data []*guestModel.Guest, err error) {
+func (p *GuestRepository) ListGuests(ctx context.Context, projectID string, eventID string, pagination *model.PaginationResponse, sql *db.QueryBuilder, sort *model.Sort) (data []*guestModel.Guest, err error) {
 	timeoutctx, cancel := context.WithTimeout(ctx, p.provider.GetTimeout())
 	defer cancel()
 
 	query := p.provider.GetDB().WithContext(timeoutctx).Debug().Table("public.guests")
 
-	query = query.Where("event_id = ?", event_id)
+	query = query.Where("project_id = ? AND event_id = ?", projectID, eventID)
 
 	query = query.Scopes(
 		db.QueryScoop(sql.CollectiveAnd),

@@ -140,3 +140,49 @@ func SetPagination(page int32, limit int32) *paginationModel.PaginationResponse 
 func GenerateProcessId() string {
 	return uuid.New().String()
 }
+
+var reUnsafe = regexp.MustCompile(`[;'"]|(?i)script|(?i)select|(?i)insert|(?i)delete|(?i)drop|(?i)update|(?i)union`)
+
+func SanitizeJSON(obj map[string]interface{}) {
+	for k, v := range obj {
+		switch val := v.(type) {
+		case string:
+			// Try to detect if string looks like JSON
+			if len(val) > 0 && (val[0] == '{' || val[0] == '[') {
+				var inner interface{}
+				if err := json.Unmarshal([]byte(val), &inner); err == nil {
+					// It was valid JSON, sanitize recursively
+					switch innerVal := inner.(type) {
+					case map[string]interface{}:
+						SanitizeJSON(innerVal)
+					case []interface{}:
+						for i, elem := range innerVal {
+							if m, ok := elem.(map[string]interface{}); ok {
+								SanitizeJSON(m)
+							} else if s, ok := elem.(string); ok {
+								innerVal[i] = reUnsafe.ReplaceAllString(s, "")
+							}
+						}
+					}
+					// Replace the original string with the cleaned JSON object
+					obj[k] = inner
+					continue
+				}
+			}
+			// Otherwise, sanitize the string directly
+			obj[k] = reUnsafe.ReplaceAllString(val, "")
+
+		case map[string]interface{}:
+			SanitizeJSON(val)
+
+		case []interface{}:
+			for i, elem := range val {
+				if m, ok := elem.(map[string]interface{}); ok {
+					SanitizeJSON(m)
+				} else if s, ok := elem.(string); ok {
+					val[i] = reUnsafe.ReplaceAllString(s, "")
+				}
+			}
+		}
+	}
+}

@@ -3,12 +3,13 @@ package model
 import "rawuh-service/internal/shared/model"
 
 type ListGuestRequest struct {
-	Page    int32  `json:"page"`
-	Limit   int32  `json:"limit"`
-	Sort    string `json:"sort"`
-	Dir     string `json:"dir"`
-	Query   string `json:"query"`
-	EventId string
+	Page      int32  `json:"page"`
+	Limit     int32  `json:"limit"`
+	Sort      string `json:"sort"`
+	Dir       string `json:"dir"`
+	Query     string `json:"query"`
+	EventId   string
+	ProjectID string
 }
 
 type ListGuestResponse struct {
@@ -20,11 +21,13 @@ type ListGuestResponse struct {
 }
 
 type CreateGuestRequest struct {
-	Name    string
-	Address string
-	Phone   string
-	Email   string
-	EventId string
+	ProjectID string
+	Name      string
+	Address   string
+	Phone     string
+	Email     string
+	EventId   string
+	Options   string
 }
 
 type CreateGuestResponse struct {
@@ -33,12 +36,14 @@ type CreateGuestResponse struct {
 	Message string
 }
 type UpdateGuestRequest struct {
-	GuestID string
-	Name    string
-	Address string
-	Phone   string
-	Email   string
-	EventId string
+	ProjectID string
+	GuestID   string
+	Name      string
+	Address   string
+	Phone     string
+	Email     string
+	EventId   string
+	Options   string
 }
 
 type UpdateGuestResponse struct {
@@ -48,8 +53,9 @@ type UpdateGuestResponse struct {
 }
 
 type GetGuestByIDRequest struct {
-	GuestID string
-	EventId string
+	ProjectID string
+	GuestID   string
+	EventId   string
 }
 
 type GetGuestByIDResponse struct {
@@ -59,8 +65,9 @@ type GetGuestByIDResponse struct {
 	Data    *Guest
 }
 type DeleteGuestByIDRequest struct {
-	GuestID string
-	EventId string
+	ProjectID string
+	GuestID   string
+	EventId   string
 }
 
 type DeleteGuestByIDResponse struct {

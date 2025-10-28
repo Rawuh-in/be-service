@@ -55,8 +55,8 @@ func (s *eventService) ListEvent(ctx context.Context, req *eventModel.ListEventR
 	loggerZap.Info("Start ListEvent with req : ", req)
 	loggerZap.Info("Start Decode Filter")
 
-	if req.UserID == "" {
-		loggerZap.Error("Access denied with user_id  : ", nil)
+	if req.ProjectID == "" {
+		loggerZap.Error("Access denied with project_id  : ", nil)
 		return nil, status.Errorf(codes.PermissionDenied, "Permission Denied")
 	}
 
@@ -107,7 +107,7 @@ func (s *eventService) ListEvent(ctx context.Context, req *eventModel.ListEventR
 	}
 
 	loggerZap.Info("Start ListEvent")
-	guest, err := s.dbProvider.ListEvent(ctx, req.UserID, req.UserID, pagination, sqlBuilder, sort)
+	guest, err := s.dbProvider.ListEvent(ctx, req.ProjectID, pagination, sqlBuilder, sort)
 	if err != nil {
 		loggerZap.Error("err ListEvent ", err)
 		return nil, status.Error(codes.Internal, "Internal Server Error")
@@ -136,13 +136,13 @@ func (s *eventService) DetailEvent(ctx context.Context, req *eventModel.DetailEv
 
 	loggerZap.Info("Start ListEvent with req : ", req)
 
-	if req.UserID == "" || req.EventsID == "" {
+	if req.EventsID == "" {
 		loggerZap.Error("Access denied with user_id  : ", nil)
 		return nil, status.Errorf(codes.PermissionDenied, "Permission Denied")
 	}
 
 	loggerZap.Info("Start ListEvent")
-	event, err := s.dbProvider.GetEventByID(ctx, req.EventsID, req.UserID)
+	event, err := s.dbProvider.GetEventByID(ctx, req.EventsID, req.ProjectID)
 	if err != nil {
 		loggerZap.Error("err ListEvent ", err)
 		return nil, status.Error(codes.Internal, "Internal Server Error")
@@ -171,13 +171,13 @@ func (s *eventService) DeleteEvent(ctx context.Context, req *eventModel.DeleteEv
 	loggerZap.Info("Start ListEvent with req : ", req)
 	loggerZap.Info("Start Decode Filter")
 
-	if req.UserID == "" || req.EventsID == "" {
+	if req.EventsID == "" || req.ProjectID == "" {
 		loggerZap.Error("Access denied with user_id  : ", nil)
 		return nil, status.Errorf(codes.PermissionDenied, "Permission Denied")
 	}
 
 	loggerZap.Info("Start ListEvent")
-	err := s.dbProvider.DeleteEventByID(ctx, req.EventsID, req.UserID)
+	err := s.dbProvider.DeleteEventByID(ctx, req.ProjectID, req.EventsID)
 	if err != nil {
 		loggerZap.Error("err ListEvent ", err)
 		return nil, status.Error(codes.Internal, "Internal Server Error")
@@ -204,6 +204,9 @@ func (s *eventService) AddEvent(ctx context.Context, req *eventModel.CreateEvent
 
 	loggerZap.Info("Start Validation for req ", req)
 
+	req.ProjectID = strings.TrimPrefix(req.ProjectID, "PRJC")
+	loggerZap.Info("Start Validation for req ", req, "projectID:", req.ProjectID)
+
 	if utils.IsEmptyString(req.EventName) || strings.TrimSpace(req.UserID) == "" {
 		return status.Errorf(codes.Aborted, "guest name is empty")
 	}
@@ -226,9 +229,14 @@ func (s *eventService) AddEvent(ctx context.Context, req *eventModel.CreateEvent
 	}
 
 	loggerZap.Info("Start AddEvent with data ", req)
+	var optionStr map[string]interface{}
+	if err := json.Unmarshal([]byte(req.Options), &optionStr); err != nil {
+		return fmt.Errorf("invalid JSON format: %w", err)
+	}
 
-	optionData, _ := json.Marshal(req.Options)
-	// optionData, _ := protojson.MarshalOptions{UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(req.Options)
+	utils.SanitizeJSON(optionStr)
+
+	optionData, _ := json.Marshal(optionStr)
 
 	req.Options = string(optionData)
 
@@ -276,11 +284,15 @@ func (s *eventService) UpdateEvent(ctx context.Context, req *eventModel.UpdateEv
 			return status.Errorf(codes.Aborted, "%s", fmt.Sprint("characters not allowed in field Address", req.Description))
 		}
 	}
+	loggerZap.Info("Start UpdateEvent with data ", req)
+	var optionStr map[string]interface{}
+	if err := json.Unmarshal([]byte(req.Options), &optionStr); err != nil {
+		return fmt.Errorf("invalid JSON format: %w", err)
+	}
 
-	loggerZap.Info("Start AddEvent with data ", req)
+	utils.SanitizeJSON(optionStr)
 
-	optionData, _ := json.Marshal(req.Options)
-	// optionData, _ := protojson.MarshalOptions{UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(req.Options)
+	optionData, _ := json.Marshal(optionStr)
 
 	req.Options = string(optionData)
 
