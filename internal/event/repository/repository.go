@@ -1,0 +1,155 @@
+package db
+
+import (
+	"context"
+	"errors"
+	eventModel "rawuh-service/internal/event/model"
+	"rawuh-service/internal/shared/db"
+	"rawuh-service/internal/shared/model"
+	"strconv"
+	"time"
+
+	"gorm.io/gorm"
+)
+
+type EventRepository struct {
+	provider *db.GormProvider
+}
+
+func NewEventRepository(provider *db.GormProvider) *EventRepository {
+	return &EventRepository{
+		provider: provider,
+	}
+}
+
+func (p *EventRepository) ListEvent(ctx context.Context, projecyID string, pagination *model.PaginationResponse, sql *db.QueryBuilder, sort *model.Sort) (data []*eventModel.Event, err error) {
+	timeoutctx, cancel := context.WithTimeout(ctx, p.provider.GetTimeout())
+	defer cancel()
+
+	query := p.provider.GetDB().WithContext(timeoutctx).Debug().Table("public.events")
+
+	query = query.Where("project_id = ?", projecyID)
+
+	query = query.Scopes(
+		db.QueryScoop(sql.CollectiveAnd),
+	)
+
+	query = query.Scopes(db.Paginate(data, pagination, query))
+	query = query.Scopes(
+		db.Sort(sort),
+	)
+
+	if err := query.Debug().Find(&data).Error; err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, err
+		}
+	}
+
+	return data, nil
+
+}
+
+func (p *EventRepository) CreateEvent(ctx context.Context, req *eventModel.CreateEventRequest) error {
+	timeoutctx, cancel := context.WithTimeout(ctx, p.provider.GetTimeout())
+	defer cancel()
+
+	query := p.provider.GetDB().WithContext(timeoutctx).Debug().Table("public.events")
+
+	userInt, userIntErr := strconv.ParseInt(req.UserID, 0, 64)
+	if userIntErr != nil {
+		return userIntErr
+	}
+
+	now := time.Now()
+	data := &eventModel.Event{
+		EventName:   req.EventName,
+		Description: req.Description,
+		Options:     req.Options,
+		StartDate:   req.StartDate,
+		EndDate:     req.EndDate,
+		CreatedById: userInt,
+		ProjectID:   userInt,
+		CreatedAt:   &now,
+		UpdatedAt:   &now,
+	}
+
+	if err := query.Omit("event_id").Create(data).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *EventRepository) UpdateEvent(ctx context.Context, req *eventModel.UpdateEventRequest) error {
+	timeoutctx, cancel := context.WithTimeout(ctx, p.provider.GetTimeout())
+	defer cancel()
+
+	query := p.provider.GetDB().WithContext(timeoutctx).Debug().Table("public.events")
+
+	query = query.Where("event_id = ?", req.EventID)
+
+	userInt, userIntErr := strconv.ParseInt(req.UserID, 0, 64)
+	if userIntErr != nil {
+		return userIntErr
+	}
+
+	now := time.Now()
+	data := &eventModel.Event{
+		EventName:   req.EventName,
+		Description: req.Description,
+		Options:     req.Options,
+		StartDate:   req.StartDate,
+		EndDate:     req.EndDate,
+		ProjectID:   userInt,
+		UpdatedAt:   &now,
+		UpdatedById: userInt,
+	}
+
+	res := query.Updates(data)
+	if res.Error != nil {
+		return res.Error
+	}
+	if res.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+
+	return nil
+}
+
+func (p *EventRepository) GetEventByID(ctx context.Context, eventID string, projectID string) (data *eventModel.Event, err error) {
+	timeoutctx, cancel := context.WithTimeout(ctx, p.provider.GetTimeout())
+	defer cancel()
+
+	query := p.provider.GetDB().WithContext(timeoutctx).Debug().Table("public.events")
+
+	query = query.Where("project_id = ? and event_id = ?", projectID, eventID)
+
+	if err := query.Debug().First(&data).Error; err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, err
+		}
+	}
+
+	return data, nil
+
+}
+
+func (p *EventRepository) DeleteEventByID(ctx context.Context, eventID string, projectID string) error {
+	timeoutctx, cancel := context.WithTimeout(ctx, p.provider.GetTimeout())
+	defer cancel()
+
+	query := p.provider.GetDB().WithContext(timeoutctx).Debug().Table("public.events")
+
+	query = query.Where("project_id = ? and event_id = ?", projectID, eventID)
+
+	res := query.Delete(&eventModel.Event{})
+	if res.Error != nil {
+		return res.Error
+	}
+	if res.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+
+	return nil
+
+}

@@ -1,14 +1,17 @@
-package guest_service
+package service
 
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	guestModel "rawuh-service/internal/guest/model"
+	"rawuh-service/internal/shared/constant"
 	"rawuh-service/internal/shared/lib/utils"
+	"rawuh-service/internal/shared/logger"
 	"rawuh-service/internal/shared/model"
-	paginationModel "rawuh-service/internal/shared/model"
 	"strconv"
 	"strings"
 
@@ -16,26 +19,27 @@ import (
 	db "rawuh-service/internal/shared/db"
 	"rawuh-service/internal/shared/redis"
 
-	"github.com/sirupsen/logrus"
+	"go.elastic.co/apm/v2"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"gorm.io/gorm"
 )
 
 type GuestService interface {
 	AddGuest(ctx context.Context, p *guestModel.CreateGuestRequest) error
 	UpdateGuestByID(ctx context.Context, p *guestModel.UpdateGuestRequest) error
 	GetGuestByID(ctx context.Context, req *guestModel.GetGuestByIDRequest) (*guestModel.GetGuestByIDResponse, error)
-	DeleteGuestByID(ctx context.Context, req *guestModel.DeleteGuestByIDRequest) (*guestModel.DeleteGuestByIDResponse, error)
+	DeleteGuestByID(ctx context.Context, req *guestModel.DeleteGuestByIDRequest) error
 	ListGuests(ctx context.Context, req *guestModel.ListGuestRequest) (*guestModel.ListGuestResponse, error)
 }
 
 type guestService struct {
 	dbProvider *guestDb.GuestRepository
-	logger     *logrus.Logger
+	logger     *logger.Logger
 	redis      *redis.Redis
 }
 
-func NewGuestService(dbProvider *guestDb.GuestRepository, logger *logrus.Logger, redis *redis.Redis) GuestService {
+func NewGuestService(dbProvider *guestDb.GuestRepository, logger *logger.Logger, redis *redis.Redis) GuestService {
 	return &guestService{
 		dbProvider: dbProvider,
 		logger:     logger,
@@ -43,40 +47,18 @@ func NewGuestService(dbProvider *guestDb.GuestRepository, logger *logrus.Logger,
 	}
 }
 
-func setPagination(page int32, limit int32) *paginationModel.PaginationResponse {
-	res := &paginationModel.PaginationResponse{
-		Limit: 10,
-		Page:  1,
-	}
-
-	if limit == 0 && page == 0 {
-		res.Limit = -1
-		res.Page = -1
-		return res
-	} else {
-		res.Limit = limit
-		res.Page = page
-	}
-
-	if res.Page == 0 {
-		res.Page = 1
-	}
-
-	switch {
-	case res.Limit > 100:
-		res.Limit = 100
-	case res.Limit <= 0:
-		res.Limit = 10
-	}
-
-	return res
-}
-
 func (s *guestService) AddGuest(ctx context.Context, req *guestModel.CreateGuestRequest) error {
+	funcName := "AddGuest"
+	span, ctx := apm.StartSpan(ctx, funcName, constant.SpanTypeProccess)
+	span.Action = constant.SpanActionExecute
+	defer span.End()
+
+	ctx, loggerZap := s.logger.StartLogger(ctx, funcName, req)
+
 	remarkLength, _ := strconv.Atoi(utils.GetEnv("REMARK_LENGTH", "500"))
 	nameLength, _ := strconv.Atoi(utils.GetEnv("PRODUCT_NAME_LENGTH", "255"))
 
-	s.logger.Info("Start Validation for req ", req)
+	loggerZap.Info("Start Validation for req ", req)
 
 	if utils.IsEmptyString(req.Name) {
 		return status.Errorf(codes.Aborted, "guest name is empty")
@@ -103,24 +85,45 @@ func (s *guestService) AddGuest(ctx context.Context, req *guestModel.CreateGuest
 		}
 	}
 
-	s.logger.Info("Start CreateGuest with data ", req)
+	loggerZap.Info("Start CreateGuest with data ", req)
+
+	if req.Options != "" {
+
+		var optionStr map[string]interface{}
+		if err := json.Unmarshal([]byte(req.Options), &optionStr); err != nil {
+			return fmt.Errorf("invalid JSON format: %w", err)
+		}
+
+		utils.SanitizeJSON(optionStr)
+		optionData, _ := json.Marshal(optionStr)
+		req.Options = string(optionData)
+	} else {
+		req.Options = "{}"
+	}
 
 	err := s.dbProvider.CreateGuest(ctx, req)
 	if err != nil {
-		s.logger.Error("err CreateGuest ", err)
+		loggerZap.Error("err CreateGuest ", err)
 		return status.Error(codes.Internal, "Internal Server Error")
 	}
 
-	s.logger.Info("Success CreateGuest")
+	loggerZap.Info("Success CreateGuest")
 
 	return nil
 }
 
 func (s *guestService) UpdateGuestByID(ctx context.Context, req *guestModel.UpdateGuestRequest) error {
+	funcName := "UpdateGuestByID"
+	span, ctx := apm.StartSpan(ctx, funcName, constant.SpanTypeProccess)
+	span.Action = constant.SpanActionExecute
+	defer span.End()
+
+	ctx, loggerZap := s.logger.StartLogger(ctx, funcName, req)
+
 	remarkLength, _ := strconv.Atoi(utils.GetEnv("REMARK_LENGTH", "500"))
 	nameLength, _ := strconv.Atoi(utils.GetEnv("PRODUCT_NAME_LENGTH", "255"))
 
-	s.logger.Info("Start Validation for req ", req)
+	loggerZap.Info("Start Validation for req ", req)
 
 	if utils.IsEmptyString(req.Name) {
 		return status.Errorf(codes.Aborted, "guest name is empty")
@@ -147,38 +150,57 @@ func (s *guestService) UpdateGuestByID(ctx context.Context, req *guestModel.Upda
 		}
 	}
 
-	s.logger.Info("Start UpdateGuest with data ", req)
+	if req.Options != "" {
+		var optionStr map[string]interface{}
+		if err := json.Unmarshal([]byte(req.Options), &optionStr); err != nil {
+			return fmt.Errorf("invalid JSON format: %w", err)
+		}
+
+		utils.SanitizeJSON(optionStr)
+		optionData, _ := json.Marshal(optionStr)
+		req.Options = string(optionData)
+	} else {
+		req.Options = "{}"
+	}
+
+	loggerZap.Info("Start UpdateGuest with data ", req)
 
 	err := s.dbProvider.UpdateGuest(ctx, req)
 	if err != nil {
-		s.logger.Error("err UpdateGuest ", err)
+		loggerZap.Error("err UpdateGuest ", err)
 		return status.Error(codes.Internal, "Internal Server Error")
 	}
 
-	s.logger.Info("Success UpdateGuest")
+	loggerZap.Info("Success UpdateGuest")
 
 	return nil
 }
 
 func (s *guestService) ListGuests(ctx context.Context, req *guestModel.ListGuestRequest) (*guestModel.ListGuestResponse, error) {
+	funcName := "ListGuests"
+	span, ctx := apm.StartSpan(ctx, funcName, constant.SpanTypeProccess)
+	span.Action = constant.SpanActionExecute
+	defer span.End()
 
-	s.logger.Info("Start ListProducts with req : ", req)
-	s.logger.Info("Start Decode Filter")
+	ctx, loggerZap := s.logger.StartLogger(ctx, funcName, req)
+
+	loggerZap.Info("Start ListProducts with req : ", req)
+	loggerZap.Info("Start Decode Filter")
 
 	if req.EventId == "" {
-		s.logger.Error("err Invalid event id : ", req.EventId)
+		loggerZap.Error("err Invalid event id : ", nil)
 		return nil, status.Errorf(codes.InvalidArgument, "Invalid Event Id")
 	}
 
 	decodeQuery, err := base64.RawStdEncoding.DecodeString(req.Query)
 	if err != nil {
-		s.logger.Error("err DecodeString ", err)
+		loggerZap.Error("err DecodeString ", err)
 		return nil, nil
 	}
 
-	s.logger.Info("Success Decode Query")
+	loggerZap.Info("Success Decode Query")
 
-	pagination := setPagination(req.Page, req.Limit)
+	pagination := utils.SetPagination(req.Page, req.Limit)
 
 	allowedColumns := map[string]bool{
 		"created_at": true,
@@ -215,14 +237,14 @@ func (s *guestService) ListGuests(ctx context.Context, req *guestModel.ListGuest
 		Sort:          sort,
 	}
 
-	s.logger.Info("Start ListGuests")
-	guest, err := s.dbProvider.ListGuests(ctx, req.EventId, pagination, sqlBuilder, sort)
+	loggerZap.Info("Start ListGuests")
+	guest, err := s.dbProvider.ListGuests(ctx, req.EventId, req.ProjectID, pagination, sqlBuilder, sort)
 	if err != nil {
 		s.logger.Error("err ListGuests ", err)
 		return nil, status.Error(codes.Internal, "Internal Server Error")
 	}
 
-	s.logger.Info("Start making response")
+	loggerZap.Info("Start making response")
 
 	result := &guestModel.ListGuestResponse{
 		Error:      false,
@@ -236,22 +258,33 @@ func (s *guestService) ListGuests(ctx context.Context, req *guestModel.ListGuest
 
 }
 func (s *guestService) GetGuestByID(ctx context.Context, req *guestModel.GetGuestByIDRequest) (*guestModel.GetGuestByIDResponse, error) {
+	funcName := "GetGuestByID"
+	span, ctx := apm.StartSpan(ctx, funcName, constant.SpanTypeProccess)
+	span.Action = constant.SpanActionExecute
+	defer span.End()
 
-	s.logger.Info("Start GetGuestByID with req : ", req)
+	ctx, loggerZap := s.logger.StartLogger(ctx, funcName, req)
+
+	loggerZap.Info("Start GetGuestByID with req : ", req)
 
 	if req.EventId == "" || req.GuestID == "" {
-		s.logger.Error("err Invalid event id : ", req.EventId)
+		loggerZap.Error("err Invalid event id : ", nil)
 		return nil, status.Errorf(codes.InvalidArgument, "Invalid Event Id")
 	}
 
-	s.logger.Info("Start GetGuestByID")
-	guest, err := s.dbProvider.GetGuestByID(ctx, req.GuestID, req.EventId)
+	loggerZap.Info("Start GetGuestByID")
+	guest, err := s.dbProvider.GetGuestByID(ctx, req.GuestID, req.ProjectID, req.EventId)
 	if err != nil {
-		s.logger.Error("err ListGuests ", err)
+		loggerZap.Error("err GetGuestByID ", err)
 		return nil, status.Error(codes.Internal, "Internal Server Error")
 	}
 
-	s.logger.Info("Start making response")
+	if guest == nil || guest.ProjectID == 0 {
+		loggerZap.Info("GetGuestByID not found", nil)
+		return nil, status.Errorf(codes.NotFound, "guest not found")
+	}
+
+	loggerZap.Info("Start making response")
 
 	result := &guestModel.GetGuestByIDResponse{
 		Error:   false,
@@ -263,30 +296,35 @@ func (s *guestService) GetGuestByID(ctx context.Context, req *guestModel.GetGues
 	return result, nil
 
 }
-func (s *guestService) DeleteGuestByID(ctx context.Context, req *guestModel.DeleteGuestByIDRequest) (*guestModel.DeleteGuestByIDResponse, error) {
+func (s *guestService) DeleteGuestByID(ctx context.Context, req *guestModel.DeleteGuestByIDRequest) error {
+	funcName := "ListProjects"
+	span, ctx := apm.StartSpan(ctx, funcName, constant.SpanTypeProccess)
+	span.Action = constant.SpanActionExecute
+	defer span.End()
 
-	s.logger.Info("Start DeleteGuestByID with req : ", req)
+	ctx, loggerZap := s.logger.StartLogger(ctx, funcName, req)
+
+	loggerZap.Info("Start DeleteGuestByID with req : ", req)
 
 	if req.EventId == "" || req.GuestID == "" {
-		s.logger.Error("err Invalid event id : ", req.EventId)
-		return nil, status.Errorf(codes.InvalidArgument, "Invalid Event Id")
+		loggerZap.Error("err Invalid event id : ", nil)
+		return status.Errorf(codes.InvalidArgument, "Invalid Event Id")
 	}
 
-	s.logger.Info("Start DeleteGuestByID")
-	err := s.dbProvider.DeleteGuestByID(ctx, req.GuestID, req.EventId)
+	loggerZap.Info("Start DeleteGuestByID")
+	err := s.dbProvider.DeleteGuestByID(ctx, req.GuestID, req.ProjectID, req.EventId)
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			loggerZap.Warn("guest not found", err)
+			return status.Error(codes.NotFound, "Guest not found")
+		}
+
 		s.logger.Error("err DeleteGuestByID ", err)
-		return nil, status.Error(codes.Internal, "Internal Server Error")
+		return status.Error(codes.Internal, "Internal Server Error")
 	}
 
-	s.logger.Info("Start making response")
+	loggerZap.Info("Start making response")
 
-	result := &guestModel.DeleteGuestByIDResponse{
-		Error:   false,
-		Code:    http.StatusOK,
-		Message: "Success",
-	}
-
-	return result, nil
+	return nil
 
 }
