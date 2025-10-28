@@ -17,7 +17,6 @@ import (
 
 	guestDb "rawuh-service/internal/guest/repository"
 	db "rawuh-service/internal/shared/db"
-	"rawuh-service/internal/shared/redis"
 
 	"go.elastic.co/apm/v2"
 	"google.golang.org/grpc/codes"
@@ -36,14 +35,14 @@ type GuestService interface {
 type guestService struct {
 	dbProvider *guestDb.GuestRepository
 	logger     *logger.Logger
-	redis      *redis.Redis
+	// redis      *redis.Redis
 }
 
-func NewGuestService(dbProvider *guestDb.GuestRepository, logger *logger.Logger, redis *redis.Redis) GuestService {
+func NewGuestService(dbProvider *guestDb.GuestRepository, logger *logger.Logger) GuestService {
 	return &guestService{
 		dbProvider: dbProvider,
 		logger:     logger,
-		redis:      redis,
+		// redis:      redis,
 	}
 }
 
