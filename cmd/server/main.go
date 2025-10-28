@@ -18,7 +18,6 @@ import (
 	"rawuh-service/internal/shared/db"
 	"rawuh-service/internal/shared/lib/utils"
 	"rawuh-service/internal/shared/logger"
-	"rawuh-service/internal/shared/redis"
 	"rawuh-service/internal/shared/router"
 	"strconv"
 
@@ -87,15 +86,16 @@ func main() {
 	eventDB := eventDb.NewEventRepository(dbProvider)
 	projectDB := projectDb.NewProjectRepository(dbProvider)
 
-	rdb := redis.NewRedis(appConfig.RedisAddr, appConfig.RedisPass, appConfig.RedisDB)
+	// rdb := redis.NewRedis(appConfig.RedisAddr, appConfig.RedisPass, appConfig.RedisDB)
 
-	guestService := guestService.NewGuestService(guestDB, zapLog, rdb)
+	// guestService := guestService.NewGuestService(guestDB, zapLog, rdb)
+	guestService := guestService.NewGuestService(guestDB, zapLog)
 	guestHandler := guestHandler.NewGuestHandler(guestService)
 
-	eventService := eventService.NewEventService(eventDB, zapLog, rdb)
+	eventService := eventService.NewEventService(eventDB, zapLog)
 	eventHandler := eventHandler.NewEventHandler(eventService)
 
-	projectService := projectService.NewProjectService(projectDB, zapLog, rdb)
+	projectService := projectService.NewProjectService(projectDB, zapLog)
 	projectHandler := projectHandler.NewProjectHandler(projectService)
 
 	r := router.NewRouter(guestHandler, eventHandler, projectHandler)

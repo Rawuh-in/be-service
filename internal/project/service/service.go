@@ -12,7 +12,6 @@ import (
 	"rawuh-service/internal/shared/lib/utils"
 	"rawuh-service/internal/shared/logger"
 	"rawuh-service/internal/shared/model"
-	"rawuh-service/internal/shared/redis"
 	"strconv"
 	"strings"
 
@@ -33,14 +32,14 @@ type ProjectService interface {
 type projectService struct {
 	dbProvider *projectDb.ProjectRepository
 	logger     *logger.Logger
-	redis      *redis.Redis
+	// redis      *redis.Redis
 }
 
-func NewProjectService(dbProvider *projectDb.ProjectRepository, logger *logger.Logger, redis *redis.Redis) ProjectService {
+func NewProjectService(dbProvider *projectDb.ProjectRepository, logger *logger.Logger) ProjectService {
 	return &projectService{
 		dbProvider: dbProvider,
 		logger:     logger,
-		redis:      redis,
+		// redis:      redis,
 	}
 }
 

@@ -11,19 +11,19 @@ import (
 type Config struct {
 	Dsn string `config:"DB_DSN"`
 
-	RedisAddr string `config:"REDIS_ADDR"`
-	RedisPass string `config:"REDIS_PASS"`
-	RedisDB   int    `config:"REDIS_DB"`
+	// RedisAddr string `config:"REDIS_ADDR"`
+	// RedisPass string `config:"REDIS_PASS"`
+	// RedisDB   int    `config:"REDIS_DB"`
 }
 
 var Configs *Config
 
 func InitConfig() *Config {
 	return &Config{
-		Dsn:       utils.GetEnv("DB_DSN", ""),
-		RedisAddr: utils.GetEnv("REDIS_ADDR", ""),
-		RedisPass: utils.GetEnv("REDIS_PASS", ""),
-		RedisDB:   0,
+		Dsn: utils.GetEnv("DB_DSN", ""),
+		// RedisAddr: utils.GetEnv("REDIS_ADDR", ""),
+		// RedisPass: utils.GetEnv("REDIS_PASS", ""),
+		// RedisDB:   0,
 	}
 }
 
