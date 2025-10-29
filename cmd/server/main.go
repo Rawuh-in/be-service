@@ -55,7 +55,7 @@ func main() {
 	}
 
 	if chosenDSN == "" {
-		chosenDSN = appConfig.Dsn
+		log.Fatal("No database DSN found — check your environment variables")
 	}
 
 	appConfig.Dsn = chosenDSN
@@ -100,8 +100,14 @@ func main() {
 
 	r := router.NewRouter(guestHandler, eventHandler, projectHandler)
 
-	log.Println("Server running on :8080")
-	if err := http.ListenAndServe(":8080", r); err != nil {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080" // fallback for local dev
+	}
+
+	log.Println("Server running on port:", port)
+	if err := http.ListenAndServe(":"+port, r); err != nil {
 		log.Fatal("Server error:", err)
 	}
+
 }
