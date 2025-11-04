@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"net/http"
 	projectModel "rawuh-service/internal/project/model"
 	projectDb "rawuh-service/internal/project/repository"
@@ -11,6 +12,7 @@ import (
 	"rawuh-service/internal/shared/db"
 	"rawuh-service/internal/shared/lib/utils"
 	"rawuh-service/internal/shared/logger"
+	"rawuh-service/internal/shared/middleware"
 	"rawuh-service/internal/shared/model"
 	"strconv"
 	"strings"
@@ -51,10 +53,13 @@ func (s *projectService) ListProjects(ctx context.Context, req *projectModel.Lis
 
 	ctx, loggerZap := s.logger.StartLogger(ctx, funcName, req)
 
-	// if req.EventId == "" {
-	// 	s.logger.Error("err Invalid event id : ", req.EventId)
-	// 	return nil, status.Errorf(codes.InvalidArgument, "Invalid Event Id")
-	// }
+	currentUser, ok := middleware.GetAuthClaimsFromContext(ctx)
+	if !ok {
+		loggerZap.Error("err GetMeFromMD no auth claims", nil)
+		return nil, status.Error(codes.Unauthenticated, "Unauthenticated")
+	}
+
+	loggerZap.Info("Success GetMeFromMD ", currentUser)
 
 	decodeQuery, err := base64.RawStdEncoding.DecodeString(req.Query)
 	if err != nil {
@@ -101,7 +106,7 @@ func (s *projectService) ListProjects(ctx context.Context, req *projectModel.Lis
 	}
 
 	loggerZap.Info("Start ListProjects with data ", req)
-	projects, err := s.dbProvider.ListProject(ctx, pagination, sqlBuilder, sort)
+	projects, err := s.dbProvider.ListProject(ctx, pagination, sqlBuilder, sort, currentUser.ProjectID)
 	if err != nil {
 		loggerZap.Error("err ListProjects ", err)
 		return nil, status.Error(codes.Internal, "Internal Server Error")
@@ -129,6 +134,19 @@ func (s *projectService) CreateProject(ctx context.Context, req *projectModel.Cr
 	ctx, loggerZap := s.logger.StartLogger(ctx, funcName, req)
 	loggerZap.Debug("Start GetMeFromMD")
 
+	currentUser, ok := middleware.GetAuthClaimsFromContext(ctx)
+	if !ok {
+		loggerZap.Error("err GetMeFromMD no auth claims", nil)
+		return status.Error(codes.Unauthenticated, "Unauthenticated")
+	}
+
+	loggerZap.Info("Success GetMeFromMD ", currentUser)
+
+	if currentUser.UserType != constant.UserTypeSystemAdmin {
+		loggerZap.Error("err CreateProject unauthorized user", nil)
+		return status.Error(codes.PermissionDenied, "Permission Denied")
+	}
+
 	nameLength, _ := strconv.Atoi(utils.GetEnv("PRODUCT_NAME_LENGTH", "255"))
 
 	s.logger.Info("Start CreateProject Validation for req ", req)
@@ -144,19 +162,15 @@ func (s *projectService) CreateProject(ctx context.Context, req *projectModel.Cr
 		return status.Errorf(codes.Aborted, "characters not allowed in project name")
 	}
 
-	if req.UserID == "" {
-		return status.Errorf(codes.Aborted, "user id is empty")
-	}
-
 	loggerZap.Info("Start CreateProject with data ", req)
 
-	err := s.dbProvider.CreateProject(ctx, req)
+	err := s.dbProvider.CreateProject(ctx, req, currentUser)
 	if err != nil {
 		s.logger.Error("err CreateGuest ", err)
 		return status.Error(codes.Internal, "Internal Server Error")
 	}
 
-	s.logger.Info("Success CreateGuest")
+	s.logger.Info("Success CreateProject")
 
 	return nil
 }
@@ -170,9 +184,27 @@ func (s *projectService) UpdateProject(ctx context.Context, req *projectModel.Up
 	ctx, loggerZap := s.logger.StartLogger(ctx, funcName, req)
 	loggerZap.Debug("Start GetMeFromMD")
 
+	currentUser, ok := middleware.GetAuthClaimsFromContext(ctx)
+	if !ok {
+		loggerZap.Error("err GetMeFromMD no auth claims", nil)
+		return status.Error(codes.Unauthenticated, "Unauthenticated")
+	}
+
+	if req.ProjectID == "" {
+		loggerZap.Error("invalid project id", nil)
+		return status.Errorf(codes.Aborted, "project id is empty")
+	}
+
+	loggerZap.Info("Success GetMeFromMD ", currentUser)
+
+	if currentUser.UserType != constant.UserTypeSystemAdmin || req.ProjectID != fmt.Sprintf("%d", currentUser.ProjectID) {
+		loggerZap.Error("err CreateProject unauthorized user", nil)
+		return status.Error(codes.PermissionDenied, "Permission Denied")
+	}
+
 	nameLength, _ := strconv.Atoi(utils.GetEnv("PRODUCT_NAME_LENGTH", "255"))
 
-	s.logger.Info("Start UpdateProject Validation for req ", req)
+	s.logger.Info("Start CreateProject Validation for req ", req)
 
 	if utils.IsEmptyString(req.ProjectName) {
 		return status.Errorf(codes.Aborted, "project name is empty")
@@ -181,17 +213,13 @@ func (s *projectService) UpdateProject(ctx context.Context, req *projectModel.Up
 		return status.Errorf(codes.Aborted, "project name maximum characters is %d", nameLength)
 	}
 
-	// if req.Status == 0 {
-	// 	return status.Errorf(codes.Aborted, "status is empty")
-	// }
-
-	// if utils.IsEmptyString(req.StatusDesc) {
-	// 	return status.Errorf(codes.Aborted, "status description is empty")
-	// }
+	if !utils.IsValidProductName(req.ProjectName) {
+		return status.Errorf(codes.Aborted, "characters not allowed in project name")
+	}
 
 	loggerZap.Info("Start UpdateProject with data ", req)
 
-	err := s.dbProvider.UpdateProject(ctx, req)
+	err := s.dbProvider.UpdateProject(ctx, req, currentUser)
 	if err != nil {
 		s.logger.Error("err UpdateProject ", err)
 		return status.Error(codes.Internal, "Internal Server Error")
@@ -210,9 +238,24 @@ func (s *projectService) DeleteProject(ctx context.Context, req *projectModel.De
 
 	ctx, loggerZap := s.logger.StartLogger(ctx, funcName, req)
 
+	loggerZap.Debug("Start GetMeFromMD")
+
+	currentUser, ok := middleware.GetAuthClaimsFromContext(ctx)
+	if !ok {
+		loggerZap.Error("err GetMeFromMD no auth claims", nil)
+		return status.Error(codes.Unauthenticated, "Unauthenticated")
+	}
+
+	loggerZap.Info("Success GetMeFromMD ", currentUser)
+
 	if req.ProjectID == "" {
 		loggerZap.Error("invalid project id", nil)
 		return status.Errorf(codes.Aborted, "project id is empty")
+	}
+
+	if currentUser.UserType != constant.UserTypeSystemAdmin || req.ProjectID != fmt.Sprintf("%d", currentUser.ProjectID) {
+		loggerZap.Error("err CreateProject unauthorized user", nil)
+		return status.Error(codes.PermissionDenied, "Permission Denied")
 	}
 
 	loggerZap.Info("Start DeleteProject with data ", req)
@@ -240,10 +283,24 @@ func (s *projectService) GetProjectDetail(ctx context.Context, req *projectModel
 	defer span.End()
 
 	ctx, loggerZap := s.logger.StartLogger(ctx, funcName, req)
+	loggerZap.Debug("Start GetMeFromMD")
+
+	currentUser, ok := middleware.GetAuthClaimsFromContext(ctx)
+	if !ok {
+		loggerZap.Error("err GetMeFromMD no auth claims", nil)
+		return nil, status.Error(codes.Unauthenticated, "Unauthenticated")
+	}
+
+	loggerZap.Info("Success GetMeFromMD ", currentUser)
 
 	if req.ProjectID == "" {
 		loggerZap.Error("invalid project id", nil)
 		return nil, status.Errorf(codes.Aborted, "project id is empty")
+	}
+
+	if currentUser.UserType != constant.UserTypeSystemAdmin || req.ProjectID != fmt.Sprintf("%d", currentUser.ProjectID) {
+		loggerZap.Error("err CreateProject unauthorized user", nil)
+		return nil, status.Error(codes.PermissionDenied, "Permission Denied")
 	}
 
 	loggerZap.Info("Start GetProjectDetail with data ", req)

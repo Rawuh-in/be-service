@@ -1,3 +1,10 @@
+// Package main RAWUH service
+//
+// @title RAWUH Service API
+// @version 1.0
+// @description This is the RAWUH Service API.
+// @host localhost:8080
+// @BasePath /
 package main
 
 import (
@@ -18,7 +25,15 @@ import (
 	"rawuh-service/internal/shared/db"
 	"rawuh-service/internal/shared/lib/utils"
 	"rawuh-service/internal/shared/logger"
+	"rawuh-service/internal/shared/redis"
 	"rawuh-service/internal/shared/router"
+
+	authHandler "rawuh-service/internal/auth/handler"
+	authDb "rawuh-service/internal/auth/repository"
+	authService "rawuh-service/internal/auth/service"
+	userHandler "rawuh-service/internal/user/handler"
+	userDb "rawuh-service/internal/user/repository"
+	userService "rawuh-service/internal/user/service"
 	"strconv"
 
 	"github.com/jackc/pgx/v4"
@@ -85,20 +100,29 @@ func main() {
 	guestDB := guestDb.NewGuestRepository(dbProvider)
 	eventDB := eventDb.NewEventRepository(dbProvider)
 	projectDB := projectDb.NewProjectRepository(dbProvider)
+	userDB := userDb.NewUserRepository(dbProvider)
 
-	// rdb := redis.NewRedis(appConfig.RedisAddr, appConfig.RedisPass, appConfig.RedisDB)
+	redisDSN := utils.GetEnv("REDIS_URL", "")
+	rdb := redis.NewRedisFromDSN(redisDSN)
 
-	// guestService := guestService.NewGuestService(guestDB, zapLog, rdb)
+	// repositories
+	authRepo := authDb.NewAuthRepository(dbProvider)
+
+	// services
 	guestService := guestService.NewGuestService(guestDB, zapLog)
-	guestHandler := guestHandler.NewGuestHandler(guestService)
-
 	eventService := eventService.NewEventService(eventDB, zapLog)
-	eventHandler := eventHandler.NewEventHandler(eventService)
-
+	userService := userService.NewUserService(userDB, authRepo, rdb, zapLog)
 	projectService := projectService.NewProjectService(projectDB, zapLog)
-	projectHandler := projectHandler.NewProjectHandler(projectService)
+	authService := authService.NewAuthService(authRepo, zapLog)
 
-	r := router.NewRouter(guestHandler, eventHandler, projectHandler)
+	// handlers
+	guestHandler := guestHandler.NewGuestHandler(guestService)
+	eventHandler := eventHandler.NewEventHandler(eventService)
+	projectHandler := projectHandler.NewProjectHandler(projectService)
+	userHandler := userHandler.NewUserHandler(userService)
+	authHandler := authHandler.NewAuthHandler(authService, userDB, rdb, zapLog)
+
+	r := router.NewRouter(guestHandler, eventHandler, projectHandler, userHandler, authHandler, rdb)
 
 	port := os.Getenv("PORT")
 	if port == "" {

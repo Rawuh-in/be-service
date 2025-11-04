@@ -24,6 +24,25 @@ func NewRedis(addr string, password string, db int) *Redis {
 	return &Redis{client}
 }
 
+func NewRedisFromDSN(dsn string) *Redis {
+	if dsn == "" {
+		// fallback to default localhost
+		fmt.Println("No REDIS_DSN provided, falling back to localhost:6379")
+		return NewRedis("localhost:6379", "", 0)
+	}
+
+	opts, err := redis.ParseURL(dsn)
+	if err != nil {
+		// If parse fails, log and fallback to default client
+		fmt.Println("failed to parse REDIS_DSN, falling back to addr form:", err)
+		return NewRedis("localhost:6379", "", 0)
+	}
+
+	fmt.Println("Redis connecting via DSN")
+	client := redis.NewClient(opts)
+	return &Redis{client}
+}
+
 func (r *Redis) GetClient() *redis.Client {
 	return r.client
 }

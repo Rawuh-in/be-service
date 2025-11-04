@@ -1,9 +1,13 @@
 package utils
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"regexp"
@@ -135,6 +139,69 @@ func SetPagination(page int32, limit int32) *paginationModel.PaginationResponse 
 	}
 
 	return res
+}
+
+// AES-GCM encrypt/decrypt helpers
+// Key is read from env AUTH_AES_KEY and must be 16, 24 or 32 bytes long (AES-128/192/256)
+func EncryptAES(plain string) (string, error) {
+	key := GetEnv("AUTH_AES_KEY", "")
+	if key == "" {
+		return "", fmt.Errorf("AUTH_AES_KEY is not set")
+	}
+	bkey := []byte(key)
+	block, err := aes.NewCipher(bkey)
+	if err != nil {
+		return "", err
+	}
+
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return "", err
+	}
+
+	nonce := make([]byte, gcm.NonceSize())
+	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
+		return "", err
+	}
+
+	ciphertext := gcm.Seal(nil, nonce, []byte(plain), nil)
+	// store nonce + ciphertext and base64 encode
+	out := append(nonce, ciphertext...)
+	return base64.StdEncoding.EncodeToString(out), nil
+}
+
+func DecryptAES(cipherTextB64 string) (string, error) {
+	key := GetEnv("AUTH_AES_KEY", "")
+	if key == "" {
+		return "", fmt.Errorf("AUTH_AES_KEY is not set")
+	}
+	bkey := []byte(key)
+	data, err := base64.StdEncoding.DecodeString(cipherTextB64)
+	if err != nil {
+		return "", err
+	}
+
+	block, err := aes.NewCipher(bkey)
+	if err != nil {
+		return "", err
+	}
+
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return "", err
+	}
+
+	nonceSize := gcm.NonceSize()
+	if len(data) < nonceSize {
+		return "", fmt.Errorf("malformed cipher text")
+	}
+
+	nonce, ciphertext := data[:nonceSize], data[nonceSize:]
+	plain, err := gcm.Open(nil, nonce, ciphertext, nil)
+	if err != nil {
+		return "", err
+	}
+	return string(plain), nil
 }
 
 func GenerateProcessId() string {

@@ -9,6 +9,6 @@ type Project struct {
 	CreatedById int64      `gorm:"type:bigint"`
 	UpdatedAt   *time.Time `gorm:"type:timestamp"`
 	UpdatedById int64      `gorm:"type:bigint"`
-	Status      string     `gorm:"type:varchar(100)"`
+	Status      int64      `gorm:"type:bigint"`
 	StatusDesc  string     `gorm:"type:varchar(500)"`
 }

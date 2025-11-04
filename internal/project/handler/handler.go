@@ -1,11 +1,13 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	projectModel "rawuh-service/internal/project/model"
 	projectService "rawuh-service/internal/project/service"
 	"rawuh-service/internal/shared/lib/utils"
+	"rawuh-service/internal/shared/middleware"
 	"strconv"
 
 	"github.com/gorilla/mux"
@@ -20,13 +22,29 @@ func NewProjectHandler(svc projectService.ProjectService) *ProjectHandler {
 		svc: svc,
 	}
 }
+
+// ListProject godoc
+// @Summary List projects
+// @Description Get paginated list of projects
+// @Tags project
+// @Accept json
+// @Produce json
+// @Param page query int false "page"
+// @Param limit query int false "limit"
+// @Success 200 {object} projectModel.ListProjectResponse
+// @Failure 400 {object} utils.APIErrorResponse
+// @Router /project/list [get]
+
 func (h *ProjectHandler) ListProject(w http.ResponseWriter, r *http.Request) {
+	result := &projectModel.ListProjectResponse{
+		Error: false,
+		Code:  http.StatusOK,
+	}
+
 	ctx := r.Context()
 
-	result := &projectModel.ListProjectResponse{
-		Error:   false,
-		Code:    http.StatusOK,
-		Message: "Success",
+	if payloadMap, okp := middleware.GetAuthPayload(ctx); okp {
+		ctx = context.WithValue(ctx, middleware.ContextKeyAuthPayload, payloadMap)
 	}
 
 	queryParams := r.URL.Query()
@@ -63,13 +81,27 @@ func (h *ProjectHandler) ListProject(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(guests)
 }
 
+// CreateProject godoc
+// @Summary Create a project
+// @Description Create a new project
+// @Tags project
+// @Accept json
+// @Produce json
+// @Param body body projectModel.CreateProjectRequest true "CreateProjectRequest"
+// @Success 200 {object} projectModel.CreateProjectResponse
+// @Failure 400 {object} utils.APIErrorResponse
+// @Router /project [post]
+
 func (h *ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	result := &projectModel.CreateProjectResponse{
-		Error:   false,
-		Code:    http.StatusOK,
-		Message: "Success",
+		Error: false,
+		Code:  http.StatusOK,
+	}
+
+	if payloadMap, okp := middleware.GetAuthPayload(ctx); okp {
+		ctx = context.WithValue(ctx, middleware.ContextKeyAuthPayload, payloadMap)
 	}
 
 	var p projectModel.CreateProjectRequest
@@ -101,6 +133,18 @@ func (h *ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(result)
 }
 
+// UpdateProject godoc
+// @Summary Update a project
+// @Description Update project by ID
+// @Tags project
+// @Accept json
+// @Produce json
+// @Param project_id path string true "project id"
+// @Param body body projectModel.UpdateProjectRequest true "UpdateProjectRequest"
+// @Success 200 {object} projectModel.UpdateProjectResponse
+// @Failure 400 {object} utils.APIErrorResponse
+// @Router /project/{project_id} [put]
+
 func (h *ProjectHandler) UpdateProject(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -108,6 +152,10 @@ func (h *ProjectHandler) UpdateProject(w http.ResponseWriter, r *http.Request) {
 		Error:   false,
 		Code:    http.StatusOK,
 		Message: "Success",
+	}
+
+	if payloadMap, okp := middleware.GetAuthPayload(ctx); okp {
+		ctx = context.WithValue(ctx, middleware.ContextKeyAuthPayload, payloadMap)
 	}
 
 	var p projectModel.UpdateProjectRequest
@@ -140,13 +188,27 @@ func (h *ProjectHandler) UpdateProject(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(result)
 }
 
+// DeleteProject godoc
+// @Summary Delete a project
+// @Description Delete project by ID
+// @Tags project
+// @Accept json
+// @Produce json
+// @Param project_id path string true "project id"
+// @Success 200 {object} projectModel.DeleteProjectResponse
+// @Failure 400 {object} utils.APIErrorResponse
+// @Router /project/{project_id} [delete]
+
 func (h *ProjectHandler) DeleteProject(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	result := &projectModel.DeleteProjectResponse{
-		Error:   false,
-		Code:    http.StatusOK,
-		Message: "Success",
+		Error: false,
+		Code:  http.StatusOK,
+	}
+
+	if payloadMap, okp := middleware.GetAuthPayload(ctx); okp {
+		ctx = context.WithValue(ctx, middleware.ContextKeyAuthPayload, payloadMap)
 	}
 
 	var p projectModel.DeleteProjectRequest
@@ -177,13 +239,27 @@ func (h *ProjectHandler) DeleteProject(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(result)
 }
 
+// DetailProject godoc
+// @Summary Get project detail
+// @Description Retrieve project details by ID
+// @Tags project
+// @Accept json
+// @Produce json
+// @Param project_id path string true "project id"
+// @Success 200 {object} projectModel.GetProjectDetailResponse
+// @Failure 404 {object} utils.APIErrorResponse
+// @Router /project/{project_id} [get]
+
 func (h *ProjectHandler) DetailProject(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	result := &projectModel.GetProjectDetailResponse{
-		Error:   false,
-		Code:    http.StatusOK,
-		Message: "Success",
+		Error: false,
+		Code:  http.StatusOK,
+	}
+
+	if payloadMap, okp := middleware.GetAuthPayload(ctx); okp {
+		ctx = context.WithValue(ctx, middleware.ContextKeyAuthPayload, payloadMap)
 	}
 
 	req := &projectModel.GetProjectDetailRequest{
