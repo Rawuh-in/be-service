@@ -1,11 +1,13 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"strconv"
 
 	"rawuh-service/internal/shared/lib/utils"
+	"rawuh-service/internal/shared/middleware"
 	userModel "rawuh-service/internal/user/model"
 	userService "rawuh-service/internal/user/service"
 
@@ -38,6 +40,10 @@ func (h *UserHandler) AddUser(w http.ResponseWriter, r *http.Request) {
 		Error:   false,
 		Code:    http.StatusOK,
 		Message: "Success Create New Guest",
+	}
+
+	if payloadMap, okp := middleware.GetAuthPayload(ctx); okp {
+		ctx = context.WithValue(ctx, middleware.ContextKeyAuthPayload, payloadMap)
 	}
 
 	var p userModel.CreateUserRequest
@@ -94,6 +100,10 @@ func (h *UserHandler) UpdateUserByID(w http.ResponseWriter, r *http.Request) {
 		Message: "Success Update Guest",
 	}
 
+	if payloadMap, okp := middleware.GetAuthPayload(ctx); okp {
+		ctx = context.WithValue(ctx, middleware.ContextKeyAuthPayload, payloadMap)
+	}
+
 	var p userModel.UpdateUserRequest
 	if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
 		result.Error = true
@@ -145,6 +155,10 @@ func (h *UserHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
 		Error:   false,
 		Code:    http.StatusOK,
 		Message: "Success",
+	}
+
+	if payloadMap, okp := middleware.GetAuthPayload(ctx); okp {
+		ctx = context.WithValue(ctx, middleware.ContextKeyAuthPayload, payloadMap)
 	}
 
 	queryParams := r.URL.Query()
@@ -202,6 +216,10 @@ func (h *UserHandler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 		Message: "Success",
 	}
 
+	if payloadMap, okp := middleware.GetAuthPayload(ctx); okp {
+		ctx = context.WithValue(ctx, middleware.ContextKeyAuthPayload, payloadMap)
+	}
+
 	req := &userModel.GetUserByIDRequest{
 		EventId:   mux.Vars(r)["event_id"],
 		UserID:    mux.Vars(r)["user_id"],
@@ -238,6 +256,10 @@ func (h *UserHandler) DeleteUserByID(w http.ResponseWriter, r *http.Request) {
 		Error:   false,
 		Code:    http.StatusOK,
 		Message: "Success",
+	}
+
+	if payloadMap, okp := middleware.GetAuthPayload(ctx); okp {
+		ctx = context.WithValue(ctx, middleware.ContextKeyAuthPayload, payloadMap)
 	}
 
 	req := &userModel.DeleteUserByIDRequest{
