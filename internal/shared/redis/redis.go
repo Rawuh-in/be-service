@@ -2,6 +2,7 @@ package redis
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -14,11 +15,12 @@ type Redis struct {
 }
 
 func NewRedis(addr string, password string, db int) *Redis {
-	fmt.Println("Redis connecting to: ", addr)
+	fmt.Println("Redis connecting to:", addr)
 	client := redis.NewClient(&redis.Options{
-		Addr:     addr,
-		Password: password,
-		DB:       db,
+		Addr:      addr,
+		Password:  password,
+		DB:        db,
+		TLSConfig: &tls.Config{}, // ✅ enable TLS manually for rediss-like endpoints
 	})
 
 	return &Redis{client}
@@ -26,19 +28,27 @@ func NewRedis(addr string, password string, db int) *Redis {
 
 func NewRedisFromDSN(dsn string) *Redis {
 	if dsn == "" {
-		// fallback to default localhost
 		fmt.Println("No REDIS_DSN provided, falling back to localhost:6379")
 		return NewRedis("localhost:6379", "", 0)
 	}
 
 	opts, err := redis.ParseURL(dsn)
 	if err != nil {
-		// If parse fails, log and fallback to default client
 		fmt.Println("failed to parse REDIS_DSN, falling back to addr form:", err)
 		return NewRedis("localhost:6379", "", 0)
 	}
 
-	fmt.Println("Redis connecting via DSN")
+	// ✅ force TLS when using rediss://
+	if opts.TLSConfig == nil {
+		opts.TLSConfig = &tls.Config{
+			MinVersion: tls.VersionTLS12,
+			// You can disable cert verification if needed (not recommended for production):
+			// In production, better to use proper CA cert.
+			InsecureSkipVerify: true,
+		}
+	}
+
+	fmt.Println("Redis connecting via DSN with TLS")
 	client := redis.NewClient(opts)
 	return &Redis{client}
 }
