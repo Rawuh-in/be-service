@@ -5,9 +5,10 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 )
 
 type Redis struct {
@@ -17,12 +18,10 @@ type Redis struct {
 func NewRedis(addr string, password string, db int) *Redis {
 	fmt.Println("Redis connecting to:", addr)
 	client := redis.NewClient(&redis.Options{
-		Addr:      addr,
-		Password:  password,
-		DB:        db,
-		TLSConfig: &tls.Config{}, // ✅ enable TLS manually for rediss-like endpoints
+		Addr:     addr,
+		Password: password,
+		DB:       db,
 	})
-
 	return &Redis{client}
 }
 
@@ -34,22 +33,20 @@ func NewRedisFromDSN(dsn string) *Redis {
 
 	opts, err := redis.ParseURL(dsn)
 	if err != nil {
-		fmt.Println("failed to parse REDIS_DSN, falling back to addr form:", err)
+		fmt.Println("Failed to parse REDIS_DSN:", err)
 		return NewRedis("localhost:6379", "", 0)
 	}
 
-	// ✅ force TLS when using rediss://
-	if opts.TLSConfig == nil {
+	// ✅ Enable TLS automatically if rediss:// scheme
+	if strings.HasPrefix(dsn, "rediss://") {
 		opts.TLSConfig = &tls.Config{
-			MinVersion: tls.VersionTLS12,
-			// You can disable cert verification if needed (not recommended for production):
-			// In production, better to use proper CA cert.
-			InsecureSkipVerify: true,
+			InsecureSkipVerify: true, // skip cert verification (solves Heroku hostname mismatch)
 		}
+		fmt.Println("Redis TLS enabled (InsecureSkipVerify=true)")
 	}
 
-	fmt.Println("Redis connecting via DSN with TLS")
 	client := redis.NewClient(opts)
+	fmt.Println("Redis connecting via DSN:", opts.Addr)
 	return &Redis{client}
 }
 
@@ -65,7 +62,6 @@ func (r *Redis) Get(ctx context.Context, key string) (string, error) {
 		}
 		return "", fmt.Errorf("failed to get key: %s", err)
 	}
-
 	return val, nil
 }
 
@@ -74,12 +70,9 @@ func (r *Redis) Set(ctx context.Context, key string, val interface{}, expiration
 	if err != nil {
 		return fmt.Errorf("failed to marshal data: %s", err)
 	}
-
-	err = r.client.Set(ctx, key, data, expiration).Err()
-	if err != nil {
+	if err := r.client.Set(ctx, key, data, expiration).Err(); err != nil {
 		return fmt.Errorf("failed to set key: %s", err)
 	}
-
 	return nil
 }
 
@@ -88,20 +81,15 @@ func (r *Redis) Update(ctx context.Context, key string, val interface{}) error {
 	if err != nil {
 		return fmt.Errorf("failed to marshal data: %s", err)
 	}
-
-	err = r.client.Set(ctx, key, data, redis.KeepTTL).Err()
-	if err != nil {
-		return fmt.Errorf("failed to set key: %s", err)
+	if err := r.client.Set(ctx, key, data, redis.KeepTTL).Err(); err != nil {
+		return fmt.Errorf("failed to update key: %s", err)
 	}
-
 	return nil
 }
 
 func (r *Redis) Del(ctx context.Context, key string) error {
-	_, err := r.client.Del(ctx, key).Result()
-	if err != nil {
-		return fmt.Errorf("failed to del key: %s", err)
+	if _, err := r.client.Del(ctx, key).Result(); err != nil {
+		return fmt.Errorf("failed to delete key: %s", err)
 	}
-
 	return nil
 }
