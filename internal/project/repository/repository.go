@@ -5,8 +5,8 @@ import (
 	"errors"
 	projectModel "rawuh-service/internal/project/model"
 	"rawuh-service/internal/shared/db"
+	"rawuh-service/internal/shared/middleware"
 	"rawuh-service/internal/shared/model"
-	"strconv"
 	"time"
 
 	"gorm.io/gorm"
@@ -22,11 +22,13 @@ func NewProjectRepository(provider *db.GormProvider) *ProjectRepository {
 	}
 }
 
-func (p *ProjectRepository) ListProject(ctx context.Context, pagination *model.PaginationResponse, sql *db.QueryBuilder, sort *model.Sort) (data []*projectModel.Project, err error) {
+func (p *ProjectRepository) ListProject(ctx context.Context, pagination *model.PaginationResponse, sql *db.QueryBuilder, sort *model.Sort, projectID int64) (data []*projectModel.Project, err error) {
 	timeoutctx, cancel := context.WithTimeout(ctx, p.provider.GetTimeout())
 	defer cancel()
 
 	query := p.provider.GetDB().WithContext(timeoutctx).Debug().Table("public.projects")
+
+	query = query.Where("project_id = ?", projectID)
 
 	query = query.Scopes(
 		db.QueryScoop(sql.CollectiveAnd),
@@ -46,24 +48,18 @@ func (p *ProjectRepository) ListProject(ctx context.Context, pagination *model.P
 	return data, nil
 }
 
-func (p *ProjectRepository) CreateProject(ctx context.Context, req *projectModel.CreateProjectRequest) error {
+func (p *ProjectRepository) CreateProject(ctx context.Context, req *projectModel.CreateProjectRequest, currentUser middleware.AuthClaims) error {
 	timeoutctx, cancel := context.WithTimeout(ctx, p.provider.GetTimeout())
 	defer cancel()
 
 	query := p.provider.GetDB().WithContext(timeoutctx).Debug().Table("public.projects")
 
-	userInt, userIntErr := strconv.ParseInt(req.UserID, 0, 64)
-	if userIntErr != nil {
-		return userIntErr
-	}
-
 	now := time.Now()
 	data := &projectModel.Project{
 		ProjectName: req.ProjectName,
-		CreatedById: userInt,
+		CreatedById: currentUser.UserID,
 		CreatedAt:   &now,
-		UpdatedById: userInt,
-		UpdatedAt:   &now,
+		Status:      1,
 	}
 
 	if err := query.Omit("event_id").Create(data).Error; err != nil {
@@ -73,7 +69,7 @@ func (p *ProjectRepository) CreateProject(ctx context.Context, req *projectModel
 	return nil
 }
 
-func (p *ProjectRepository) UpdateProject(ctx context.Context, req *projectModel.UpdateProjectRequest) error {
+func (p *ProjectRepository) UpdateProject(ctx context.Context, req *projectModel.UpdateProjectRequest, currentUser middleware.AuthClaims) error {
 	timeoutctx, cancel := context.WithTimeout(ctx, p.provider.GetTimeout())
 	defer cancel()
 
@@ -81,15 +77,10 @@ func (p *ProjectRepository) UpdateProject(ctx context.Context, req *projectModel
 
 	query = query.Where("project_id = ?", req.ProjectID)
 
-	userInt, userIntErr := strconv.ParseInt(req.UserID, 0, 64)
-	if userIntErr != nil {
-		return userIntErr
-	}
-
 	now := time.Now()
 	data := &projectModel.Project{
 		ProjectName: req.ProjectName,
-		UpdatedById: userInt,
+		UpdatedById: currentUser.UserID,
 		UpdatedAt:   &now,
 	}
 

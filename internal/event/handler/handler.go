@@ -1,11 +1,14 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	eventModel "rawuh-service/internal/event/model"
 	eventService "rawuh-service/internal/event/service"
 	"rawuh-service/internal/shared/lib/utils"
+	"rawuh-service/internal/shared/middleware"
 	"strconv"
 
 	"github.com/gorilla/mux"
@@ -19,13 +22,28 @@ func NewEventHandler(svc eventService.EventService) *EventHandler {
 	return &EventHandler{svc: svc}
 }
 
+// ListEvent godoc
+// @Summary List events
+// @Description Get paginated list of events for a project
+// @Tags event
+// @Accept json
+// @Produce json
+// @Param page query int false "page"
+// @Param limit query int false "limit"
+// @Success 200 {object} eventModel.ListEventResponse
+// @Failure 400 {object} utils.APIErrorResponse
+// @Router /{project_id}/events/list [get]
+
 func (h *EventHandler) ListEvent(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	result := &eventModel.ListEventResponse{
-		Error:   false,
-		Code:    http.StatusOK,
-		Message: "Success",
+		Error: false,
+		Code:  http.StatusOK,
+	}
+
+	if payloadMap, okp := middleware.GetAuthPayload(ctx); okp {
+		ctx = context.WithValue(ctx, middleware.ContextKeyAuthPayload, payloadMap)
 	}
 
 	queryParams := r.URL.Query()
@@ -62,13 +80,27 @@ func (h *EventHandler) ListEvent(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(guests)
 }
 
+// DetailEvent godoc
+// @Summary Get event detail
+// @Description Get details for a specific event
+// @Tags event
+// @Accept json
+// @Produce json
+// @Param event_id path string true "event id"
+// @Success 200 {object} eventModel.DetailEventResponse
+// @Failure 404 {object} utils.APIErrorResponse
+// @Router /{project_id}/events/{event_id} [get]
+
 func (h *EventHandler) DetailEvent(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	result := &eventModel.DetailEventResponse{
-		Error:   false,
-		Code:    http.StatusOK,
-		Message: "Success",
+		Error: false,
+		Code:  http.StatusOK,
+	}
+
+	if payloadMap, okp := middleware.GetAuthPayload(ctx); okp {
+		ctx = context.WithValue(ctx, middleware.ContextKeyAuthPayload, payloadMap)
 	}
 
 	queryParams := r.URL.Query()
@@ -101,6 +133,17 @@ func (h *EventHandler) DetailEvent(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(guests)
 }
 
+// AddEvent godoc
+// @Summary Create an event
+// @Description Create a new event within a project
+// @Tags event
+// @Accept json
+// @Produce json
+// @Param body body eventModel.CreateEventRequest true "CreateEventRequest"
+// @Success 200 {object} eventModel.CreateEventResponse
+// @Failure 400 {object} utils.APIErrorResponse
+// @Router /{project_id}/events [post]
+
 func (h *EventHandler) AddEvent(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -108,6 +151,10 @@ func (h *EventHandler) AddEvent(w http.ResponseWriter, r *http.Request) {
 		Error:   false,
 		Code:    http.StatusOK,
 		Message: "Success Create New Event",
+	}
+
+	if payloadMap, okp := middleware.GetAuthPayload(ctx); okp {
+		ctx = context.WithValue(ctx, middleware.ContextKeyAuthPayload, payloadMap)
 	}
 
 	var p eventModel.CreateEventRequest
@@ -144,13 +191,29 @@ func (h *EventHandler) AddEvent(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(result)
 }
 
+// UpdateEvent godoc
+// @Summary Update an event
+// @Description Update event details by ID
+// @Tags event
+// @Accept json
+// @Produce json
+// @Param event_id path string true "event id"
+// @Param body body eventModel.UpdateEventRequest true "UpdateEventRequest"
+// @Success 200 {object} eventModel.UpdateEventResponse
+// @Failure 400 {object} utils.APIErrorResponse
+// @Router /{project_id}/events/{event_id} [put]
+
 func (h *EventHandler) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	result := &eventModel.UpdateEventResponse{
 		Error:   false,
 		Code:    http.StatusOK,
-		Message: "Success Create New Event",
+		Message: fmt.Sprintf("Success Update Event with id %s", mux.Vars(r)["event_id"]),
+	}
+
+	if payloadMap, okp := middleware.GetAuthPayload(ctx); okp {
+		ctx = context.WithValue(ctx, middleware.ContextKeyAuthPayload, payloadMap)
 	}
 
 	var p eventModel.UpdateEventRequest
@@ -188,13 +251,28 @@ func (h *EventHandler) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(result)
 }
 
+// DeleteEvent godoc
+// @Summary Delete an event
+// @Description Delete event by ID
+// @Tags event
+// @Accept json
+// @Produce json
+// @Param event_id path string true "event id"
+// @Success 200 {object} eventModel.DeleteEventResponse
+// @Failure 400 {object} utils.APIErrorResponse
+// @Router /{project_id}/events/{event_id} [delete]
+
 func (h *EventHandler) DeleteEvent(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	result := &eventModel.DeleteEventResponse{
 		Error:   false,
 		Code:    http.StatusOK,
-		Message: "Success",
+		Message: fmt.Sprintf("Success Delete Event with id %s", mux.Vars(r)["event_id"]),
+	}
+
+	if payloadMap, okp := middleware.GetAuthPayload(ctx); okp {
+		ctx = context.WithValue(ctx, middleware.ContextKeyAuthPayload, payloadMap)
 	}
 
 	req := &eventModel.DeleteEventRequest{

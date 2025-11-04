@@ -13,4 +13,7 @@ const (
 	ContextKeyProductName    contextKey = "product-name"
 	ContextKeyProcessIdStr              = "process-id"
 	ContextKeyProductNameStr            = "product-name"
+
+	UserTypeSystemAdmin = "SYSTEM_ADMIN"
+	UserTypeProjectUser = "PROJECT_USER"
 )

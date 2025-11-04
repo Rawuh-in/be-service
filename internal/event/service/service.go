@@ -13,6 +13,7 @@ import (
 	"rawuh-service/internal/shared/db"
 	"rawuh-service/internal/shared/lib/utils"
 	"rawuh-service/internal/shared/logger"
+	"rawuh-service/internal/shared/middleware"
 	"rawuh-service/internal/shared/model"
 	"strconv"
 	"strings"
@@ -52,14 +53,14 @@ func (s *eventService) ListEvent(ctx context.Context, req *eventModel.ListEventR
 	defer span.End()
 
 	ctx, loggerZap := s.logger.StartLogger(ctx, funcName, req)
+	currentUser, ok := middleware.GetAuthClaimsFromContext(ctx)
+	if !ok {
+		loggerZap.Error("err GetMeFromMD no auth claims", nil)
+		return nil, status.Error(codes.Unauthenticated, "Unauthenticated")
+	}
 
 	loggerZap.Info("Start ListEvent with req : ", req)
 	loggerZap.Info("Start Decode Filter")
-
-	if req.ProjectID == "" {
-		loggerZap.Error("Access denied with project_id  : ", nil)
-		return nil, status.Errorf(codes.PermissionDenied, "Permission Denied")
-	}
 
 	decodeQuery, err := base64.RawStdEncoding.DecodeString(req.Query)
 	if err != nil {
@@ -108,7 +109,7 @@ func (s *eventService) ListEvent(ctx context.Context, req *eventModel.ListEventR
 	}
 
 	loggerZap.Info("Start ListEvent")
-	guest, err := s.dbProvider.ListEvent(ctx, req.ProjectID, pagination, sqlBuilder, sort)
+	guest, err := s.dbProvider.ListEvent(ctx, currentUser, pagination, sqlBuilder, sort)
 	if err != nil {
 		loggerZap.Error("err ListEvent ", err)
 		return nil, status.Error(codes.Internal, "Internal Server Error")
@@ -134,16 +135,34 @@ func (s *eventService) DetailEvent(ctx context.Context, req *eventModel.DetailEv
 	defer span.End()
 
 	ctx, loggerZap := s.logger.StartLogger(ctx, funcName, req)
+	currentUser, ok := middleware.GetAuthClaimsFromContext(ctx)
+	if !ok {
+		loggerZap.Error("err GetMeFromMD no auth claims", nil)
+		return nil, status.Error(codes.Unauthenticated, "Unauthenticated")
+	}
 
 	loggerZap.Info("Start ListEvent with req : ", req)
 
 	if req.EventsID == "" {
-		loggerZap.Error("Access denied with user_id  : ", nil)
-		return nil, status.Errorf(codes.PermissionDenied, "Permission Denied")
+		loggerZap.Error("Empty Event Id  : ", nil)
+		return nil, status.Errorf(codes.InvalidArgument, "Invalid Argument")
+	}
+
+	switch currentUser.UserType {
+	case constant.UserTypeSystemAdmin:
+		// system admin can access all projects
+	case constant.UserTypeProjectUser:
+		if req.ProjectID != fmt.Sprintf("%d", currentUser.ProjectID) {
+			loggerZap.Error("err GetMeFromMD unauthorized user", nil)
+			return nil, status.Error(codes.PermissionDenied, "Permission Denied")
+		}
+	default:
+		loggerZap.Error("err GetMeFromMD unauthorized user type", nil)
+		return nil, status.Error(codes.PermissionDenied, "Permission Denied")
 	}
 
 	loggerZap.Info("Start ListEvent")
-	event, err := s.dbProvider.GetEventByID(ctx, req.EventsID, req.ProjectID)
+	event, err := s.dbProvider.GetEventByID(ctx, req.EventsID, currentUser)
 	if err != nil {
 		loggerZap.Error("err ListEvent ", err)
 		return nil, status.Error(codes.Internal, "Internal Server Error")
@@ -173,17 +192,35 @@ func (s *eventService) DeleteEvent(ctx context.Context, req *eventModel.DeleteEv
 	defer span.End()
 
 	ctx, loggerZap := s.logger.StartLogger(ctx, funcName, req)
+	currentUser, ok := middleware.GetAuthClaimsFromContext(ctx)
+	if !ok {
+		loggerZap.Error("err GetMeFromMD no auth claims", nil)
+		return status.Error(codes.Unauthenticated, "Unauthenticated")
+	}
 
 	loggerZap.Info("Start ListEvent with req : ", req)
 	loggerZap.Info("Start Decode Filter")
 
-	if req.EventsID == "" || req.ProjectID == "" {
+	if req.EventsID == "" {
 		loggerZap.Error("Access denied with user_id  : ", nil)
 		return status.Errorf(codes.PermissionDenied, "Permission Denied")
 	}
 
+	switch currentUser.UserType {
+	case constant.UserTypeSystemAdmin:
+		// system admin can access all projects
+	case constant.UserTypeProjectUser:
+		if req.ProjectID != fmt.Sprintf("%d", currentUser.ProjectID) {
+			loggerZap.Error("err GetMeFromMD unauthorized user", nil)
+			return status.Error(codes.PermissionDenied, "Permission Denied")
+		}
+	default:
+		loggerZap.Error("err GetMeFromMD unauthorized user type", nil)
+		return status.Error(codes.PermissionDenied, "Permission Denied")
+	}
+
 	loggerZap.Info("Start ListEvent")
-	err := s.dbProvider.DeleteEventByID(ctx, req.EventsID, req.ProjectID)
+	err := s.dbProvider.DeleteEventByID(ctx, req.EventsID, currentUser)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			loggerZap.Warn("event not found", err)
@@ -204,24 +241,39 @@ func (s *eventService) AddEvent(ctx context.Context, req *eventModel.CreateEvent
 	defer span.End()
 
 	ctx, loggerZap := s.logger.StartLogger(ctx, funcName, req)
+	currentUser, ok := middleware.GetAuthClaimsFromContext(ctx)
+	if !ok {
+		loggerZap.Error("err GetMeFromMD no auth claims", nil)
+		return status.Error(codes.Unauthenticated, "Unauthenticated")
+	}
 
-	remarkLength, _ := strconv.Atoi(utils.GetEnv("REMARK_LENGTH", "500"))
-	nameLength, _ := strconv.Atoi(utils.GetEnv("PRODUCT_NAME_LENGTH", "255"))
+	switch currentUser.UserType {
+	case constant.UserTypeSystemAdmin:
+		// system admin can access all projects
+	case constant.UserTypeProjectUser:
+		if req.ProjectID != fmt.Sprintf("%d", currentUser.ProjectID) {
+			loggerZap.Error("err GetMeFromMD unauthorized user", nil)
+			return status.Error(codes.PermissionDenied, "Permission Denied")
+		}
+	default:
+		loggerZap.Error("err GetMeFromMD unauthorized user type", nil)
+		return status.Error(codes.PermissionDenied, "Permission Denied")
+	}
+
+	remarkLength, _ := strconv.Atoi(utils.GetEnv("EVENT_REMARK_LENGTH", "500"))
+	nameLength, _ := strconv.Atoi(utils.GetEnv("EVENT_NAME_LENGTH", "255"))
 
 	loggerZap.Info("Start Validation for req ", req)
 
-	req.ProjectID = strings.TrimPrefix(req.ProjectID, "PRJC")
-	loggerZap.Info("Start Validation for req ", req, "projectID:", req.ProjectID)
-
-	if utils.IsEmptyString(req.EventName) || strings.TrimSpace(req.UserID) == "" {
-		return status.Errorf(codes.Aborted, "guest name is empty")
+	if utils.IsEmptyString(req.EventName) {
+		return status.Errorf(codes.Aborted, "event name is empty")
 	}
 	if len(req.EventName) > nameLength {
-		return status.Errorf(codes.Aborted, "guest name maximum characters is %d", nameLength)
+		return status.Errorf(codes.Aborted, "event name maximum characters is %d", nameLength)
 	}
 
 	if !utils.IsValidProductName(req.EventName) || strings.ContainsAny(req.EventName, "%$#@!*&^<>\"") || !utils.IsValidProductName(req.Description) {
-		return status.Errorf(codes.Aborted, "characters not allowed in guest name")
+		return status.Errorf(codes.Aborted, "characters not allowed in event name")
 	}
 
 	if strings.TrimSpace(req.Description) != "" {
@@ -249,7 +301,7 @@ func (s *eventService) AddEvent(ctx context.Context, req *eventModel.CreateEvent
 		req.Options = "{}"
 	}
 
-	err := s.dbProvider.CreateEvent(ctx, req)
+	err := s.dbProvider.CreateEvent(ctx, req, currentUser)
 	if err != nil {
 		loggerZap.Error("err AddEvent ", err)
 		return status.Error(codes.Internal, "Internal Server Error")
@@ -267,21 +319,39 @@ func (s *eventService) UpdateEvent(ctx context.Context, req *eventModel.UpdateEv
 	defer span.End()
 
 	ctx, loggerZap := s.logger.StartLogger(ctx, funcName, req)
+	currentUser, ok := middleware.GetAuthClaimsFromContext(ctx)
+	if !ok {
+		loggerZap.Error("err GetMeFromMD no auth claims", nil)
+		return status.Error(codes.Unauthenticated, "Unauthenticated")
+	}
 
-	remarkLength, _ := strconv.Atoi(utils.GetEnv("REMARK_LENGTH", "500"))
-	nameLength, _ := strconv.Atoi(utils.GetEnv("PRODUCT_NAME_LENGTH", "255"))
+	switch currentUser.UserType {
+	case constant.UserTypeSystemAdmin:
+		// system admin can access all projects
+	case constant.UserTypeProjectUser:
+		if req.ProjectID != fmt.Sprintf("%d", currentUser.ProjectID) {
+			loggerZap.Error("err GetMeFromMD unauthorized user", nil)
+			return status.Error(codes.PermissionDenied, "Permission Denied")
+		}
+	default:
+		loggerZap.Error("err GetMeFromMD unauthorized user type", nil)
+		return status.Error(codes.PermissionDenied, "Permission Denied")
+	}
+
+	remarkLength, _ := strconv.Atoi(utils.GetEnv("EVENT_REMARK_LENGTH", "500"))
+	nameLength, _ := strconv.Atoi(utils.GetEnv("EVENT_NAME_LENGTH", "255"))
 
 	loggerZap.Info("Start Validation for req ", req)
 
-	if utils.IsEmptyString(req.EventName) || strings.TrimSpace(req.UserID) == "" {
-		return status.Errorf(codes.Aborted, "guest name is empty")
+	if utils.IsEmptyString(req.EventName) {
+		return status.Errorf(codes.Aborted, "event name is empty")
 	}
 	if len(req.EventName) > nameLength {
-		return status.Errorf(codes.Aborted, "guest name maximum characters is %d", nameLength)
+		return status.Errorf(codes.Aborted, "event name maximum characters is %d", nameLength)
 	}
 
 	if !utils.IsValidProductName(req.EventName) || strings.ContainsAny(req.EventName, "%$#@!*&^<>\"") || !utils.IsValidProductName(req.Description) {
-		return status.Errorf(codes.Aborted, "characters not allowed in guest name")
+		return status.Errorf(codes.Aborted, "characters not allowed in event name")
 	}
 
 	if strings.TrimSpace(req.Description) != "" {
@@ -310,9 +380,9 @@ func (s *eventService) UpdateEvent(ctx context.Context, req *eventModel.UpdateEv
 		req.Options = "{}"
 	}
 
-	err := s.dbProvider.UpdateEvent(ctx, req)
+	err := s.dbProvider.UpdateEvent(ctx, req, currentUser)
 	if err != nil {
-		loggerZap.Error("err AddEvent ", err)
+		loggerZap.Error("err UpdateEvent ", err)
 		return status.Error(codes.Internal, "Internal Server Error")
 	}
 
