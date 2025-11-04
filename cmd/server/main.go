@@ -102,8 +102,23 @@ func main() {
 	projectDB := projectDb.NewProjectRepository(dbProvider)
 	userDB := userDb.NewUserRepository(dbProvider)
 
-	redisDSN := utils.GetEnv("REDIS_URL", "")
-	rdb := redis.NewRedisFromDSN(redisDSN)
+	var rdb *redis.Redis
+	redisURL := utils.GetEnv("REDIS_URL", "")
+	redisDSN := utils.GetEnv("REDIS_DSN", "")
+	if redisURL != "" {
+		rdb = redis.NewRedisFromDSN(redisURL)
+	} else if redisDSN != "" {
+		rdb = redis.NewRedisFromDSN(redisDSN)
+	} else {
+		redisAddr := utils.GetEnv("REDIS_ADDR", "localhost:6379")
+		redisPass := utils.GetEnv("REDIS_PASS", "")
+		redisDBStr := utils.GetEnv("REDIS_DB", "0")
+		redisDB, err := strconv.Atoi(redisDBStr)
+		if err != nil {
+			redisDB = 0
+		}
+		rdb = redis.NewRedis(redisAddr, redisPass, redisDB)
+	}
 
 	// repositories
 	authRepo := authDb.NewAuthRepository(dbProvider)
