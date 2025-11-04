@@ -294,8 +294,10 @@ func (l *Logger) StartLogger(ctx context.Context, funcName string, metadatas int
 
 	md.Append(constant.ContextKeyProcessIdStr, processId)
 
-	ctx = context.Background()
-
+	// Preserve the incoming context's values (do not replace with Background).
+	// Use the existing ctx when injecting metadata so that any request-scoped
+	// values (for example auth payload set by HTTP middleware) remain available
+	// to callers of StartLogger.
 	newCtx := metadata.NewOutgoingContext(ctx, md)
 	newCtx = metadata.NewIncomingContext(newCtx, md)
 
