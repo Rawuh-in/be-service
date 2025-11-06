@@ -18,6 +18,8 @@ import (
 
 func NewRouter(g *guestHandler.GuestHandler, e *eventHandler.EventHandler, p *projectHandler.ProjectHandler, u *userHandler.UserHandler, a *authHandler.AuthHandler, rdb *redisPkg.Redis) http.Handler {
 	r := mux.NewRouter()
+	// Apply CORS middleware first so preflight and headers are set globally.
+	r.Use(middleware.CORSMiddleware)
 	r.Use(middleware.AuthMiddleware(rdb))
 
 	protected := r.NewRoute().Subrouter()

@@ -1,9 +1,1072 @@
 basePath: /
+definitions:
+  auth_handler.loginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  auth_handler.loginResponse:
+    properties:
+      access_token:
+        type: string
+      code:
+        type: integer
+      error:
+        type: boolean
+      message:
+        type: string
+    type: object
+  rawuh-service_internal_auth_handler.loginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  rawuh-service_internal_auth_handler.loginResponse:
+    properties:
+      access_token:
+        type: string
+      code:
+        type: integer
+      error:
+        type: boolean
+      message:
+        type: string
+    type: object
+  rawuh-service_internal_event_model.CreateEventRequest:
+    properties:
+      description:
+        type: string
+      endDate:
+        type: string
+      eventName:
+        type: string
+      options:
+        type: string
+      projectID:
+        type: string
+      startDate:
+        type: string
+      userID:
+        type: string
+    type: object
+  rawuh-service_internal_event_model.CreateEventResponse:
+    properties:
+      code:
+        format: int32
+        type: integer
+      error:
+        type: boolean
+      message:
+        type: string
+    type: object
+  rawuh-service_internal_event_model.DeleteEventResponse:
+    properties:
+      code:
+        format: int32
+        type: integer
+      error:
+        type: boolean
+      message:
+        type: string
+    type: object
+  rawuh-service_internal_event_model.DetailEventResponse:
+    properties:
+      code:
+        format: int32
+        type: integer
+      data:
+        $ref: '#/definitions/rawuh-service_internal_event_model.Event'
+      error:
+        type: boolean
+      message:
+        type: string
+    type: object
+  rawuh-service_internal_event_model.Event:
+    properties:
+      createdAt:
+        type: string
+      createdById:
+        type: integer
+      createdByName:
+        type: string
+      description:
+        type: string
+      endDate:
+        type: string
+      eventID:
+        type: integer
+      eventName:
+        type: string
+      options:
+        type: string
+      projectID:
+        type: integer
+      startDate:
+        type: string
+      updatedAt:
+        type: string
+      updatedById:
+        type: integer
+      updatedByName:
+        type: string
+    type: object
+  rawuh-service_internal_event_model.ListEventResponse:
+    properties:
+      code:
+        format: int32
+        type: integer
+      data:
+        items:
+          $ref: '#/definitions/rawuh-service_internal_event_model.Event'
+        type: array
+      error:
+        type: boolean
+      message:
+        type: string
+      pagination:
+        $ref: '#/definitions/rawuh-service_internal_shared_model.PaginationResponse'
+    type: object
+  rawuh-service_internal_event_model.UpdateEventRequest:
+    properties:
+      description:
+        type: string
+      endDate:
+        type: string
+      eventID:
+        type: string
+      eventName:
+        type: string
+      options:
+        type: string
+      projectID:
+        type: string
+      startDate:
+        type: string
+      userID:
+        type: string
+    type: object
+  rawuh-service_internal_event_model.UpdateEventResponse:
+    properties:
+      code:
+        format: int32
+        type: integer
+      error:
+        type: boolean
+      message:
+        type: string
+    type: object
+  rawuh-service_internal_guest_model.CreateGuestRequest:
+    properties:
+      address:
+        type: string
+      email:
+        type: string
+      eventId:
+        type: string
+      name:
+        type: string
+      options:
+        type: string
+      phone:
+        type: string
+      projectID:
+        type: string
+    type: object
+  rawuh-service_internal_guest_model.CreateGuestResponse:
+    properties:
+      code:
+        format: int32
+        type: integer
+      error:
+        type: boolean
+      message:
+        type: string
+    type: object
+  rawuh-service_internal_guest_model.GetGuestByIDResponse:
+    properties:
+      code:
+        format: int32
+        type: integer
+      data:
+        $ref: '#/definitions/rawuh-service_internal_guest_model.Guest'
+      error:
+        type: boolean
+      message:
+        type: string
+    type: object
+  rawuh-service_internal_guest_model.Guest:
+    properties:
+      address:
+        type: string
+      createdAt:
+        type: string
+      email:
+        type: string
+      eventId:
+        type: integer
+      guestID:
+        type: integer
+      name:
+        type: string
+      options:
+        type: string
+      phone:
+        type: string
+      projectID:
+        type: integer
+      updatedAt:
+        type: string
+    type: object
+  rawuh-service_internal_guest_model.ListGuestResponse:
+    properties:
+      code:
+        format: int32
+        type: integer
+      data:
+        items:
+          $ref: '#/definitions/rawuh-service_internal_guest_model.Guest'
+        type: array
+      error:
+        type: boolean
+      message:
+        type: string
+      pagination:
+        $ref: '#/definitions/rawuh-service_internal_shared_model.PaginationResponse'
+    type: object
+  rawuh-service_internal_guest_model.UpdateGuestRequest:
+    properties:
+      address:
+        type: string
+      email:
+        type: string
+      eventId:
+        type: string
+      guestID:
+        type: string
+      name:
+        type: string
+      options:
+        type: string
+      phone:
+        type: string
+      projectID:
+        type: string
+    type: object
+  rawuh-service_internal_guest_model.UpdateGuestResponse:
+    properties:
+      code:
+        format: int32
+        type: integer
+      error:
+        type: boolean
+      message:
+        type: string
+    type: object
+  rawuh-service_internal_project_model.CreateProjectRequest:
+    properties:
+      projectName:
+        type: string
+      userID:
+        type: string
+    type: object
+  rawuh-service_internal_project_model.CreateProjectResponse:
+    properties:
+      code:
+        format: int32
+        type: integer
+      error:
+        type: boolean
+      message:
+        type: string
+    type: object
+  rawuh-service_internal_project_model.DeleteProjectResponse:
+    properties:
+      code:
+        format: int32
+        type: integer
+      error:
+        type: boolean
+      message:
+        type: string
+    type: object
+  rawuh-service_internal_project_model.GetProjectDetailResponse:
+    properties:
+      code:
+        format: int32
+        type: integer
+      data:
+        $ref: '#/definitions/rawuh-service_internal_project_model.Project'
+      error:
+        type: boolean
+      message:
+        type: string
+    type: object
+  rawuh-service_internal_project_model.ListProjectResponse:
+    properties:
+      code:
+        format: int32
+        type: integer
+      data:
+        items:
+          $ref: '#/definitions/rawuh-service_internal_project_model.Project'
+        type: array
+      error:
+        type: boolean
+      message:
+        type: string
+      pagination:
+        $ref: '#/definitions/rawuh-service_internal_shared_model.PaginationResponse'
+    type: object
+  rawuh-service_internal_project_model.Project:
+    properties:
+      createdAt:
+        type: string
+      createdById:
+        type: integer
+      projectID:
+        type: integer
+      projectName:
+        type: string
+      status:
+        type: integer
+      statusDesc:
+        type: string
+      updatedAt:
+        type: string
+      updatedById:
+        type: integer
+    type: object
+  rawuh-service_internal_project_model.UpdateProjectRequest:
+    properties:
+      options:
+        type: string
+      projectID:
+        type: string
+      projectName:
+        type: string
+      status:
+        format: int32
+        type: integer
+      statusDesc:
+        type: string
+      userID:
+        type: string
+    type: object
+  rawuh-service_internal_project_model.UpdateProjectResponse:
+    properties:
+      code:
+        format: int32
+        type: integer
+      error:
+        type: boolean
+      message:
+        type: string
+    type: object
+  rawuh-service_internal_shared_lib_utils.APIErrorResponse:
+    properties:
+      Code:
+        type: integer
+      Error:
+        type: boolean
+      Message:
+        type: string
+    type: object
+  rawuh-service_internal_shared_model.PaginationResponse:
+    properties:
+      limit:
+        format: int32
+        type: integer
+      page:
+        format: int32
+        type: integer
+      totalPages:
+        format: int32
+        type: integer
+      totalRows:
+        format: int64
+        type: integer
+    type: object
+  rawuh-service_internal_user_model.CreateUserRequest:
+    properties:
+      email:
+        type: string
+      eventId:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      projectID:
+        type: string
+      userID:
+        type: string
+      userType:
+        type: string
+      username:
+        type: string
+    type: object
+  rawuh-service_internal_user_model.CreateUserResponse:
+    properties:
+      code:
+        format: int32
+        type: integer
+      error:
+        type: boolean
+      message:
+        type: string
+    type: object
+  rawuh-service_internal_user_model.GetUserByIDResponse:
+    properties:
+      code:
+        format: int32
+        type: integer
+      data:
+        $ref: '#/definitions/rawuh-service_internal_user_model.User'
+      error:
+        type: boolean
+      message:
+        type: string
+    type: object
+  rawuh-service_internal_user_model.ListUserResponse:
+    properties:
+      code:
+        format: int32
+        type: integer
+      data:
+        items:
+          $ref: '#/definitions/rawuh-service_internal_user_model.User'
+        type: array
+      error:
+        type: boolean
+      message:
+        type: string
+      pagination:
+        $ref: '#/definitions/rawuh-service_internal_shared_model.PaginationResponse'
+    type: object
+  rawuh-service_internal_user_model.UpdateUserRequest:
+    properties:
+      email:
+        type: string
+      eventId:
+        type: string
+      name:
+        type: string
+      projectID:
+        type: string
+      userID:
+        type: string
+      userType:
+        type: string
+      username:
+        type: string
+    type: object
+  rawuh-service_internal_user_model.UpdateUserResponse:
+    properties:
+      code:
+        format: int32
+        type: integer
+      error:
+        type: boolean
+      message:
+        type: string
+    type: object
+  rawuh-service_internal_user_model.User:
+    properties:
+      createdAt:
+        type: string
+      createdById:
+        type: integer
+      createdByName:
+        type: string
+      email:
+        type: string
+      eventId:
+        type: integer
+      name:
+        type: string
+      projectID:
+        type: integer
+      status:
+        type: integer
+      updatedAt:
+        type: string
+      updatedById:
+        type: integer
+      updatedByName:
+        type: string
+      userID:
+        type: integer
+      userType:
+        type: string
+      username:
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact: {}
   description: This is the RAWUH Service API.
   title: RAWUH Service API
   version: "1.0"
-paths: {}
+paths:
+  /{project_id}/events:
+    post:
+      consumes:
+      - application/json
+      description: Create a new event within a project
+      parameters:
+      - description: CreateEventRequest
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/rawuh-service_internal_event_model.CreateEventRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_event_model.CreateEventResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse'
+      summary: Create an event
+      tags:
+      - event
+  /{project_id}/events/{event_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete event by ID
+      parameters:
+      - description: event id
+        in: path
+        name: event_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_event_model.DeleteEventResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse'
+      summary: Delete an event
+      tags:
+      - event
+    get:
+      consumes:
+      - application/json
+      description: Get details for a specific event
+      parameters:
+      - description: event id
+        in: path
+        name: event_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_event_model.DetailEventResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse'
+      summary: Get event detail
+      tags:
+      - event
+    put:
+      consumes:
+      - application/json
+      description: Update event details by ID
+      parameters:
+      - description: event id
+        in: path
+        name: event_id
+        required: true
+        type: string
+      - description: UpdateEventRequest
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/rawuh-service_internal_event_model.UpdateEventRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_event_model.UpdateEventResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse'
+      summary: Update an event
+      tags:
+      - event
+  /{project_id}/events/{event_id}/guests:
+    post:
+      consumes:
+      - application/json
+      description: Create guest for an event
+      parameters:
+      - description: CreateGuestRequest
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/rawuh-service_internal_guest_model.CreateGuestRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_guest_model.CreateGuestResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse'
+      summary: Create a new guest
+      tags:
+      - guest
+  /{project_id}/events/{event_id}/guests/{guest_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a guest
+      parameters:
+      - description: guest id
+        in: path
+        name: guest_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_guest_model.GetGuestByIDResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse'
+      summary: Delete guest by ID
+      tags:
+      - guest
+    get:
+      consumes:
+      - application/json
+      description: Get guest details
+      parameters:
+      - description: guest id
+        in: path
+        name: guest_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_guest_model.GetGuestByIDResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse'
+      summary: Get guest by ID
+      tags:
+      - guest
+    put:
+      consumes:
+      - application/json
+      description: Update guest details
+      parameters:
+      - description: UpdateGuestRequest
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/rawuh-service_internal_guest_model.UpdateGuestRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_guest_model.UpdateGuestResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse'
+      summary: Update guest by ID
+      tags:
+      - guest
+  /{project_id}/events/{event_id}/guests/list:
+    get:
+      consumes:
+      - application/json
+      description: Get list of guests for an event
+      parameters:
+      - description: page
+        in: query
+        name: page
+        type: integer
+      - description: limit
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_guest_model.ListGuestResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse'
+      summary: List guests
+      tags:
+      - guest
+  /{project_id}/events/list:
+    get:
+      consumes:
+      - application/json
+      description: Get paginated list of events for a project
+      parameters:
+      - description: page
+        in: query
+        name: page
+        type: integer
+      - description: limit
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_event_model.ListEventResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse'
+      summary: List events
+      tags:
+      - event
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user and return an access token
+      parameters:
+      - description: Login credentials
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/auth_handler.loginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth_handler.loginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse'
+      summary: Login with username and password
+      tags:
+      - auth
+  /project:
+    post:
+      consumes:
+      - application/json
+      description: Create a new project
+      parameters:
+      - description: CreateProjectRequest
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/rawuh-service_internal_project_model.CreateProjectRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_project_model.CreateProjectResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse'
+      summary: Create a project
+      tags:
+      - project
+  /project/{project_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete project by ID
+      parameters:
+      - description: project id
+        in: path
+        name: project_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_project_model.DeleteProjectResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse'
+      summary: Delete a project
+      tags:
+      - project
+    get:
+      consumes:
+      - application/json
+      description: Retrieve project details by ID
+      parameters:
+      - description: project id
+        in: path
+        name: project_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_project_model.GetProjectDetailResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse'
+      summary: Get project detail
+      tags:
+      - project
+    put:
+      consumes:
+      - application/json
+      description: Update project by ID
+      parameters:
+      - description: project id
+        in: path
+        name: project_id
+        required: true
+        type: string
+      - description: UpdateProjectRequest
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/rawuh-service_internal_project_model.UpdateProjectRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_project_model.UpdateProjectResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse'
+      summary: Update a project
+      tags:
+      - project
+  /project/list:
+    get:
+      consumes:
+      - application/json
+      description: Get paginated list of projects
+      parameters:
+      - description: page
+        in: query
+        name: page
+        type: integer
+      - description: limit
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_project_model.ListProjectResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse'
+      summary: List projects
+      tags:
+      - project
+  /users:
+    post:
+      consumes:
+      - application/json
+      description: Create user and create auth row when password provided
+      parameters:
+      - description: CreateUserRequest
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/rawuh-service_internal_user_model.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_user_model.CreateUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse'
+      summary: Create a new user
+      tags:
+      - user
+  /users/{user_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a user
+      parameters:
+      - description: user id
+        in: path
+        name: user_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_user_model.GetUserByIDResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse'
+      summary: Delete user by ID
+      tags:
+      - user
+    get:
+      consumes:
+      - application/json
+      description: Retrieve user details by ID
+      parameters:
+      - description: user id
+        in: path
+        name: user_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_user_model.GetUserByIDResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse'
+      summary: Get user by ID
+      tags:
+      - user
+    put:
+      consumes:
+      - application/json
+      description: Update user details by ID
+      parameters:
+      - description: user id
+        in: path
+        name: user_id
+        required: true
+        type: string
+      - description: UpdateUserRequest
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/rawuh-service_internal_user_model.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_user_model.UpdateUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse'
+      summary: Update a user
+      tags:
+      - user
+  /users/list:
+    get:
+      consumes:
+      - application/json
+      description: Get paginated list of users
+      parameters:
+      - description: page
+        in: query
+        name: page
+        type: integer
+      - description: limit
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_user_model.ListUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse'
+      summary: List users
+      tags:
+      - user
 swagger: "2.0"

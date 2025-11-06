@@ -9,9 +9,20 @@ cd "$SCRIPT_DIR"
 
 # Allow overriding the swag command or flags via environment vars
 SWAG_CMD="${SWAG_CMD:-go run github.com/swaggo/swag/cmd/swag}"
-SWAG_FLAGS="${SWAG_FLAGS:-init -g ./cmd/server/main.go -o ./docs}"
+
+# By default run swag from the cmd/server directory so it doesn't try to
+# `go list ./` on the repository root (which has no .go files) and emit the
+# harmless "no Go files in ./" warning. You can still override SWAG_FLAGS
+# via environment if you want a custom invocation.
+SWAG_FLAGS="${SWAG_FLAGS:-init -g main.go -o ../../docs --parseInternal --parseDependency --parseDependencyLevel 3 --parseFuncBody --dir .,../../internal}"
 
 echo "Generating swagger docs..."
-GOFLAGS=-mod=mod $SWAG_CMD $SWAG_FLAGS
+
+# If the user provided SWAG_FLAGS explicitly, respect it but still run inside
+# cmd/server so relative -g/main paths work and root scanning is avoided.
+(
+	cd cmd/server
+	GOFLAGS=-mod=mod $SWAG_CMD $SWAG_FLAGS
+)
 
 echo "Swagger docs generated at ./docs/swagger.json and ./docs/docs.go"
