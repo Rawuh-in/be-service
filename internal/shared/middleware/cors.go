@@ -13,41 +13,47 @@ func CORSMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		origin := r.Header.Get("Origin")
 
-		// Always allow localhost origins in development
-		if strings.Contains(origin, "localhost") || strings.Contains(origin, "127.0.0.1") {
-			w.Header().Set("Access-Control-Allow-Origin", origin)
-		} else {
-			// For production, check against allowed origins
-			allowedEnv := utils.GetEnv("ALLOWED_ORIGINS", "*")
-			if allowedEnv == "*" {
-				if origin != "" {
+		// Set standard CORS headers
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, X-Requested-With")
+		w.Header().Set("Access-Control-Expose-Headers", "Content-Type, Authorization")
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
+		w.Header().Set("Access-Control-Max-Age", "3600")
+
+		// Handle Origin
+		if origin != "" {
+			// Always allow localhost origins in development
+			if strings.Contains(origin, "localhost") || strings.Contains(origin, "127.0.0.1") {
+				w.Header().Set("Access-Control-Allow-Origin", origin)
+			} else {
+				// For production, check against allowed origins
+				allowedEnv := utils.GetEnv("ALLOWED_ORIGINS", "*")
+				if allowedEnv == "*" {
 					w.Header().Set("Access-Control-Allow-Origin", origin)
 				} else {
-					w.Header().Set("Access-Control-Allow-Origin", "*")
-				}
-			} else {
-				allowed := strings.Split(allowedEnv, ",")
-				for _, o := range allowed {
-					if strings.TrimSpace(o) == origin {
-						w.Header().Set("Access-Control-Allow-Origin", origin)
-						break
+					allowed := strings.Split(allowedEnv, ",")
+					for _, o := range allowed {
+						if strings.TrimSpace(o) == origin {
+							w.Header().Set("Access-Control-Allow-Origin", origin)
+							break
+						}
 					}
 				}
 			}
 		}
 
-		// Set other CORS headers
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, X-Requested-With")
-		w.Header().Set("Access-Control-Expose-Headers", "Content-Type")
-		w.Header().Set("Content-Type", "application/json")
-		w.Header().Set("Access-Control-Allow-Credentials", "true")
-		w.Header().Set("Access-Control-Max-Age", "3600")
-
 		// Handle preflight requests
 		if r.Method == http.MethodOptions {
-			w.WriteHeader(http.StatusOK)
-			return
+			if origin != "" {
+				w.Header().Set("Content-Type", "text/plain")
+				w.WriteHeader(http.StatusNoContent)
+				return
+			}
+		}
+
+		// For actual requests, set content type to JSON
+		if r.Method != http.MethodOptions {
+			w.Header().Set("Content-Type", "application/json")
 		}
 
 		next.ServeHTTP(w, r)
