@@ -63,6 +63,11 @@ const docTemplate = `{
         },
         "/project": {
             "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Create a new project",
                 "consumes": [
                     "application/json"
@@ -103,6 +108,11 @@ const docTemplate = `{
         },
         "/project/list": {
             "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Get paginated list of projects",
                 "consumes": [
                     "application/json"
@@ -265,6 +275,11 @@ const docTemplate = `{
         },
         "/users": {
             "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Create user and create auth row when password provided",
                 "consumes": [
                     "application/json"
@@ -305,6 +320,11 @@ const docTemplate = `{
         },
         "/users/list": {
             "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Get paginated list of users",
                 "consumes": [
                     "application/json"
@@ -348,6 +368,11 @@ const docTemplate = `{
         },
         "/users/{user_id}": {
             "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Retrieve user details by ID",
                 "consumes": [
                     "application/json"
@@ -384,6 +409,11 @@ const docTemplate = `{
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Update user details by ID",
                 "consumes": [
                     "application/json"
@@ -429,6 +459,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Delete a user",
                 "consumes": [
                     "application/json"

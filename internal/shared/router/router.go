@@ -112,13 +112,50 @@ func NewRouter(g *guestHandler.GuestHandler, e *eventHandler.EventHandler, p *pr
 
 		secDef := map[string]interface{}{
 			"Bearer": map[string]interface{}{
-				"type": "apiKey",
-				"name": "Authorization",
-				"in":   "header",
+				"type":        "apiKey",
+				"name":        "Authorization",
+				"in":          "header",
+				"description": "Enter the token with the `Bearer: ` prefix, e.g. \"Bearer abcde12345\".",
 			},
 		}
 		docObj["securityDefinitions"] = secDef
 		docObj["security"] = []interface{}{map[string]interface{}{"Bearer": []interface{}{}}}
+
+		// Add middleware to modify authorization header
+		if docObj["paths"] != nil {
+			paths := docObj["paths"].(map[string]interface{})
+			for _, path := range paths {
+				if pathObj, ok := path.(map[string]interface{}); ok {
+					for _, method := range pathObj {
+						if methodObj, ok := method.(map[string]interface{}); ok {
+							if _, hasSecurity := methodObj["security"]; hasSecurity {
+								if parameters, hasParams := methodObj["parameters"].([]interface{}); hasParams {
+									// Add or update Authorization parameter
+									authParam := map[string]interface{}{
+										"type":        "string",
+										"in":          "header",
+										"name":        "Authorization",
+										"description": "Bearer token authentication",
+										"default":     "Bearer ",
+									}
+									methodObj["parameters"] = append(parameters, authParam)
+								} else {
+									methodObj["parameters"] = []interface{}{
+										map[string]interface{}{
+											"type":        "string",
+											"in":          "header",
+											"name":        "Authorization",
+											"description": "Bearer token authentication",
+											"default":     "Bearer ",
+										},
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
 
 		out, err := json.Marshal(docObj)
 		if err != nil {

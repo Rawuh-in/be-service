@@ -104,7 +104,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	res := &loginResponse{
 		Error:       false,
 		Code:        http.StatusOK,
-		AccessToken: token,
+		AccessToken: "Bearer " + token,
 		Message:     "success",
 	}
 	w.Header().Set("Content-Type", "application/json")

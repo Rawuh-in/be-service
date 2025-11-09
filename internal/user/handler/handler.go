@@ -28,6 +28,7 @@ func NewUserHandler(svc userService.UserService) *UserHandler {
 // @Tags user
 // @Accept json
 // @Produce json
+// @Security Bearer
 // @Param body body userModel.CreateUserRequest true "CreateUserRequest"
 // @Success 200 {object} userModel.CreateUserResponse
 // @Failure 400 {object} utils.APIErrorResponse
@@ -85,6 +86,7 @@ func (h *UserHandler) AddUser(w http.ResponseWriter, r *http.Request) {
 // @Tags user
 // @Accept json
 // @Produce json
+// @Security Bearer
 // @Param user_id path string true "user id"
 // @Param body body userModel.UpdateUserRequest true "UpdateUserRequest"
 // @Success 200 {object} userModel.UpdateUserResponse
@@ -142,6 +144,7 @@ func (h *UserHandler) UpdateUserByID(w http.ResponseWriter, r *http.Request) {
 // @Tags user
 // @Accept json
 // @Produce json
+// @Security Bearer
 // @Param page query int false "page"
 // @Param limit query int false "limit"
 // @Success 200 {object} userModel.ListUserResponse
@@ -202,6 +205,7 @@ func (h *UserHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
 // @Tags user
 // @Accept json
 // @Produce json
+// @Security Bearer
 // @Param user_id path string true "user id"
 // @Success 200 {object} userModel.GetUserByIDResponse
 // @Failure 404 {object} utils.APIErrorResponse
@@ -244,6 +248,7 @@ func (h *UserHandler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 // @Tags user
 // @Accept json
 // @Produce json
+// @Security Bearer
 // @Param user_id path string true "user id"
 // @Success 200 {object} userModel.GetUserByIDResponse
 // @Failure 404 {object} utils.APIErrorResponse

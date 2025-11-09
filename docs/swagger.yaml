@@ -487,570 +487,582 @@ definitions:
       Message:
         type: string
     type: object
-host: be-service-0f01851c6cbd.herokuapp.com
+host: localhost:8080
 info:
   contact: {}
   description: This is the RAWUH Service API.
   title: RAWUH Service API
-  version: '1.0'
-schemes:
-  - https
+  version: "1.0"
 paths:
   /{project_id}/events:
     post:
       consumes:
-        - application/json
+      - application/json
       description: Create a new event within a project
       parameters:
-        - description: CreateEventRequest
-          in: body
-          name: body
-          required: true
-          schema:
-            $ref: '#/definitions/model.CreateEventRequest'
+      - description: CreateEventRequest
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/model.CreateEventRequest'
       produces:
-        - application/json
+      - application/json
       responses:
-        '200':
+        "200":
           description: OK
           schema:
             $ref: '#/definitions/model.CreateEventResponse'
-        '400':
+        "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/utils.APIErrorResponse'
       summary: Create an event
       tags:
-        - event
+      - event
   /{project_id}/events/{event_id}:
     delete:
       consumes:
-        - application/json
+      - application/json
       description: Delete event by ID
       parameters:
-        - description: event id
-          in: path
-          name: event_id
-          required: true
-          type: string
+      - description: event id
+        in: path
+        name: event_id
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
-        '200':
+        "200":
           description: OK
           schema:
             $ref: '#/definitions/model.DeleteEventResponse'
-        '400':
+        "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/utils.APIErrorResponse'
       summary: Delete an event
       tags:
-        - event
+      - event
     get:
       consumes:
-        - application/json
+      - application/json
       description: Get details for a specific event
       parameters:
-        - description: event id
-          in: path
-          name: event_id
-          required: true
-          type: string
+      - description: event id
+        in: path
+        name: event_id
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
-        '200':
+        "200":
           description: OK
           schema:
             $ref: '#/definitions/model.DetailEventResponse'
-        '404':
+        "404":
           description: Not Found
           schema:
             $ref: '#/definitions/utils.APIErrorResponse'
       summary: Get event detail
       tags:
-        - event
+      - event
     put:
       consumes:
-        - application/json
+      - application/json
       description: Update event details by ID
       parameters:
-        - description: event id
-          in: path
-          name: event_id
-          required: true
-          type: string
-        - description: UpdateEventRequest
-          in: body
-          name: body
-          required: true
-          schema:
-            $ref: '#/definitions/model.UpdateEventRequest'
+      - description: event id
+        in: path
+        name: event_id
+        required: true
+        type: string
+      - description: UpdateEventRequest
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/model.UpdateEventRequest'
       produces:
-        - application/json
+      - application/json
       responses:
-        '200':
+        "200":
           description: OK
           schema:
             $ref: '#/definitions/model.UpdateEventResponse'
-        '400':
+        "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/utils.APIErrorResponse'
       summary: Update an event
       tags:
-        - event
+      - event
   /{project_id}/events/{event_id}/guests:
     post:
       consumes:
-        - application/json
+      - application/json
       description: Create guest for an event
       parameters:
-        - description: CreateGuestRequest
-          in: body
-          name: body
-          required: true
-          schema:
-            $ref: '#/definitions/model.CreateGuestRequest'
+      - description: CreateGuestRequest
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/model.CreateGuestRequest'
       produces:
-        - application/json
+      - application/json
       responses:
-        '200':
+        "200":
           description: OK
           schema:
             $ref: '#/definitions/model.CreateGuestResponse'
-        '400':
+        "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/utils.APIErrorResponse'
       summary: Create a new guest
       tags:
-        - guest
+      - guest
   /{project_id}/events/{event_id}/guests/{guest_id}:
     delete:
       consumes:
-        - application/json
+      - application/json
       description: Delete a guest
       parameters:
-        - description: guest id
-          in: path
-          name: guest_id
-          required: true
-          type: string
+      - description: guest id
+        in: path
+        name: guest_id
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
-        '200':
+        "200":
           description: OK
           schema:
             $ref: '#/definitions/model.GetGuestByIDResponse'
-        '404':
+        "404":
           description: Not Found
           schema:
             $ref: '#/definitions/utils.APIErrorResponse'
       summary: Delete guest by ID
       tags:
-        - guest
+      - guest
     get:
       consumes:
-        - application/json
+      - application/json
       description: Get guest details
       parameters:
-        - description: guest id
-          in: path
-          name: guest_id
-          required: true
-          type: string
+      - description: guest id
+        in: path
+        name: guest_id
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
-        '200':
+        "200":
           description: OK
           schema:
             $ref: '#/definitions/model.GetGuestByIDResponse'
-        '404':
+        "404":
           description: Not Found
           schema:
             $ref: '#/definitions/utils.APIErrorResponse'
       summary: Get guest by ID
       tags:
-        - guest
+      - guest
     put:
       consumes:
-        - application/json
+      - application/json
       description: Update guest details
       parameters:
-        - description: UpdateGuestRequest
-          in: body
-          name: body
-          required: true
-          schema:
-            $ref: '#/definitions/model.UpdateGuestRequest'
+      - description: UpdateGuestRequest
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/model.UpdateGuestRequest'
       produces:
-        - application/json
+      - application/json
       responses:
-        '200':
+        "200":
           description: OK
           schema:
             $ref: '#/definitions/model.UpdateGuestResponse'
-        '400':
+        "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/utils.APIErrorResponse'
       summary: Update guest by ID
       tags:
-        - guest
+      - guest
   /{project_id}/events/{event_id}/guests/list:
     get:
       consumes:
-        - application/json
+      - application/json
       description: Get list of guests for an event
       parameters:
-        - description: page
-          in: query
-          name: page
-          type: integer
-        - description: limit
-          in: query
-          name: limit
-          type: integer
+      - description: page
+        in: query
+        name: page
+        type: integer
+      - description: limit
+        in: query
+        name: limit
+        type: integer
       produces:
-        - application/json
+      - application/json
       responses:
-        '200':
+        "200":
           description: OK
           schema:
             $ref: '#/definitions/model.ListGuestResponse'
-        '400':
+        "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/utils.APIErrorResponse'
       summary: List guests
       tags:
-        - guest
+      - guest
   /{project_id}/events/list:
     get:
       consumes:
-        - application/json
+      - application/json
       description: Get paginated list of events for a project
       parameters:
-        - description: page
-          in: query
-          name: page
-          type: integer
-        - description: limit
-          in: query
-          name: limit
-          type: integer
+      - description: page
+        in: query
+        name: page
+        type: integer
+      - description: limit
+        in: query
+        name: limit
+        type: integer
       produces:
-        - application/json
+      - application/json
       responses:
-        '200':
+        "200":
           description: OK
           schema:
             $ref: '#/definitions/model.ListEventResponse'
-        '400':
+        "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/utils.APIErrorResponse'
       summary: List events
       tags:
-        - event
+      - event
   /login:
     post:
       consumes:
-        - application/json
+      - application/json
       description: Authenticate user and return an access token
       parameters:
-        - description: Login credentials
-          in: body
-          name: body
-          required: true
-          schema:
-            $ref: '#/definitions/handler.loginRequest'
+      - description: Login credentials
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.loginRequest'
       produces:
-        - application/json
+      - application/json
       responses:
-        '200':
+        "200":
           description: OK
           schema:
             $ref: '#/definitions/handler.loginResponse'
-        '400':
+        "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/utils.APIErrorResponse'
-        '401':
+        "401":
           description: Unauthorized
           schema:
             $ref: '#/definitions/utils.APIErrorResponse'
       summary: Login with username and password
       tags:
-        - auth
+      - auth
   /project:
     post:
       consumes:
-        - application/json
+      - application/json
       description: Create a new project
       parameters:
-        - description: CreateProjectRequest
-          in: body
-          name: body
-          required: true
-          schema:
-            $ref: '#/definitions/model.CreateProjectRequest'
+      - description: CreateProjectRequest
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/model.CreateProjectRequest'
       produces:
-        - application/json
+      - application/json
       responses:
-        '200':
+        "200":
           description: OK
           schema:
             $ref: '#/definitions/model.CreateProjectResponse'
-        '400':
+        "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/utils.APIErrorResponse'
+      security:
+      - Bearer: []
       summary: Create a project
       tags:
-        - project
+      - project
   /project/{project_id}:
     delete:
       consumes:
-        - application/json
+      - application/json
       description: Delete project by ID
       parameters:
-        - description: project id
-          in: path
-          name: project_id
-          required: true
-          type: string
+      - description: project id
+        in: path
+        name: project_id
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
-        '200':
+        "200":
           description: OK
           schema:
             $ref: '#/definitions/model.DeleteProjectResponse'
-        '400':
+        "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/utils.APIErrorResponse'
       summary: Delete a project
       tags:
-        - project
+      - project
     get:
       consumes:
-        - application/json
+      - application/json
       description: Retrieve project details by ID
       parameters:
-        - description: project id
-          in: path
-          name: project_id
-          required: true
-          type: string
+      - description: project id
+        in: path
+        name: project_id
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
-        '200':
+        "200":
           description: OK
           schema:
             $ref: '#/definitions/model.GetProjectDetailResponse'
-        '404':
+        "404":
           description: Not Found
           schema:
             $ref: '#/definitions/utils.APIErrorResponse'
       summary: Get project detail
       tags:
-        - project
+      - project
     put:
       consumes:
-        - application/json
+      - application/json
       description: Update project by ID
       parameters:
-        - description: project id
-          in: path
-          name: project_id
-          required: true
-          type: string
-        - description: UpdateProjectRequest
-          in: body
-          name: body
-          required: true
-          schema:
-            $ref: '#/definitions/model.UpdateProjectRequest'
+      - description: project id
+        in: path
+        name: project_id
+        required: true
+        type: string
+      - description: UpdateProjectRequest
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/model.UpdateProjectRequest'
       produces:
-        - application/json
+      - application/json
       responses:
-        '200':
+        "200":
           description: OK
           schema:
             $ref: '#/definitions/model.UpdateProjectResponse'
-        '400':
+        "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/utils.APIErrorResponse'
       summary: Update a project
       tags:
-        - project
+      - project
   /project/list:
     get:
       consumes:
-        - application/json
+      - application/json
       description: Get paginated list of projects
       parameters:
-        - description: page
-          in: query
-          name: page
-          type: integer
-        - description: limit
-          in: query
-          name: limit
-          type: integer
+      - description: page
+        in: query
+        name: page
+        type: integer
+      - description: limit
+        in: query
+        name: limit
+        type: integer
       produces:
-        - application/json
+      - application/json
       responses:
-        '200':
+        "200":
           description: OK
           schema:
             $ref: '#/definitions/model.ListProjectResponse'
-        '400':
+        "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/utils.APIErrorResponse'
+      security:
+      - Bearer: []
       summary: List projects
       tags:
-        - project
+      - project
   /users:
     post:
       consumes:
-        - application/json
+      - application/json
       description: Create user and create auth row when password provided
       parameters:
-        - description: CreateUserRequest
-          in: body
-          name: body
-          required: true
-          schema:
-            $ref: '#/definitions/model.CreateUserRequest'
+      - description: CreateUserRequest
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/model.CreateUserRequest'
       produces:
-        - application/json
+      - application/json
       responses:
-        '200':
+        "200":
           description: OK
           schema:
             $ref: '#/definitions/model.CreateUserResponse'
-        '400':
+        "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/utils.APIErrorResponse'
+      security:
+      - Bearer: []
       summary: Create a new user
       tags:
-        - user
+      - user
   /users/{user_id}:
     delete:
       consumes:
-        - application/json
+      - application/json
       description: Delete a user
       parameters:
-        - description: user id
-          in: path
-          name: user_id
-          required: true
-          type: string
+      - description: user id
+        in: path
+        name: user_id
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
-        '200':
+        "200":
           description: OK
           schema:
             $ref: '#/definitions/model.GetUserByIDResponse'
-        '404':
+        "404":
           description: Not Found
           schema:
             $ref: '#/definitions/utils.APIErrorResponse'
+      security:
+      - Bearer: []
       summary: Delete user by ID
       tags:
-        - user
+      - user
     get:
       consumes:
-        - application/json
+      - application/json
       description: Retrieve user details by ID
       parameters:
-        - description: user id
-          in: path
-          name: user_id
-          required: true
-          type: string
+      - description: user id
+        in: path
+        name: user_id
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
-        '200':
+        "200":
           description: OK
           schema:
             $ref: '#/definitions/model.GetUserByIDResponse'
-        '404':
+        "404":
           description: Not Found
           schema:
             $ref: '#/definitions/utils.APIErrorResponse'
+      security:
+      - Bearer: []
       summary: Get user by ID
       tags:
-        - user
+      - user
     put:
       consumes:
-        - application/json
+      - application/json
       description: Update user details by ID
       parameters:
-        - description: user id
-          in: path
-          name: user_id
-          required: true
-          type: string
-        - description: UpdateUserRequest
-          in: body
-          name: body
-          required: true
-          schema:
-            $ref: '#/definitions/model.UpdateUserRequest'
+      - description: user id
+        in: path
+        name: user_id
+        required: true
+        type: string
+      - description: UpdateUserRequest
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/model.UpdateUserRequest'
       produces:
-        - application/json
+      - application/json
       responses:
-        '200':
+        "200":
           description: OK
           schema:
             $ref: '#/definitions/model.UpdateUserResponse'
-        '400':
+        "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/utils.APIErrorResponse'
+      security:
+      - Bearer: []
       summary: Update a user
       tags:
-        - user
+      - user
   /users/list:
     get:
       consumes:
-        - application/json
+      - application/json
       description: Get paginated list of users
       parameters:
-        - description: page
-          in: query
-          name: page
-          type: integer
-        - description: limit
-          in: query
-          name: limit
-          type: integer
+      - description: page
+        in: query
+        name: page
+        type: integer
+      - description: limit
+        in: query
+        name: limit
+        type: integer
       produces:
-        - application/json
+      - application/json
       responses:
-        '200':
+        "200":
           description: OK
           schema:
             $ref: '#/definitions/model.ListUserResponse'
-        '400':
+        "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/utils.APIErrorResponse'
+      security:
+      - Bearer: []
       summary: List users
       tags:
-        - user
-swagger: '2.0'
+      - user
+swagger: "2.0"

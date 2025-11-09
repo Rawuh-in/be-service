@@ -9,45 +9,42 @@ import (
 
 // CORSMiddleware sets CORS headers for all routes and handles OPTIONS preflight.
 // Uses ALLOWED_ORIGINS env (comma-separated) to control browser-accessible origins.
-// Defaults to allowing http://localhost:3000 and http://127.0.0.1:3000 for local dev.
 func CORSMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		origin := r.Header.Get("Origin")
 
-		// Build allowed origins list from env or use sensible defaults
-		allowedEnv := utils.GetEnv("ALLOWED_ORIGINS", "http://localhost:3000,https://localhost:3000,http://127.0.0.1:3000,https://127.0.0.1:3000")
-		allowed := map[string]struct{}{}
-		for _, o := range strings.Split(allowedEnv, ",") {
-			if v := strings.TrimSpace(o); v != "" {
-				allowed[v] = struct{}{}
-			}
-		}
-
-		if origin == "" {
-			// No Origin header (e.g., curl), keep permissive fallback
-			w.Header().Set("Access-Control-Allow-Origin", "*")
+		// Always allow localhost origins in development
+		if strings.Contains(origin, "localhost") || strings.Contains(origin, "127.0.0.1") {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
 		} else {
-			// If origin is in allow-list, echo it; otherwise, omit header so browser blocks
-			if _, ok := allowed[origin]; ok {
-				w.Header().Set("Access-Control-Allow-Origin", origin)
+			// For production, check against allowed origins
+			allowedEnv := utils.GetEnv("ALLOWED_ORIGINS", "*")
+			if allowedEnv == "*" {
+				if origin != "" {
+					w.Header().Set("Access-Control-Allow-Origin", origin)
+				} else {
+					w.Header().Set("Access-Control-Allow-Origin", "*")
+				}
+			} else {
+				allowed := strings.Split(allowedEnv, ",")
+				for _, o := range allowed {
+					if strings.TrimSpace(o) == origin {
+						w.Header().Set("Access-Control-Allow-Origin", origin)
+						break
+					}
+				}
 			}
 		}
 
+		// Set other CORS headers
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
+		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, X-Requested-With")
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
+		w.Header().Set("Access-Control-Max-Age", "3600")
 
-		// For preflight requests, respond with 200 OK directly if origin allowed
+		// Handle preflight requests
 		if r.Method == http.MethodOptions {
-			if origin == "" {
-				w.WriteHeader(http.StatusOK)
-				return
-			}
-			if _, ok := allowed[origin]; ok {
-				w.WriteHeader(http.StatusOK)
-				return
-			}
-			w.WriteHeader(http.StatusForbidden)
+			w.WriteHeader(http.StatusOK)
 			return
 		}
 
