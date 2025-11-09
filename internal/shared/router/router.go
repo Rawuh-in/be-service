@@ -3,6 +3,7 @@ package router
 import (
 	"encoding/json"
 	"net/http"
+	"net/url"
 	"strings"
 
 	authHandler "rawuh-service/internal/auth/handler"
@@ -81,8 +82,48 @@ func NewRouter(g *guestHandler.GuestHandler, e *eventHandler.EventHandler, p *pr
 			return
 		}
 
-		if docs.SwaggerInfo != nil {
-			if host := docs.SwaggerInfo.Host; host != "" {
+		// If SWAGGER_URL is an absolute URL (e.g. https://myhost/path/swagger/doc.json)
+		// use it to override host/basePath/schemes so the UI examples point to the right public API.
+		swaggerURLEnv := swaggerURL
+		swaggerIsAbs := false
+		if u, err := url.Parse(swaggerURLEnv); err == nil && u.Scheme != "" && u.Host != "" {
+			swaggerIsAbs = true
+			docObj["host"] = u.Host
+			// If the swagger doc path is nested (e.g. /api/swagger/doc.json), set basePath to the prefix
+			bp := strings.TrimSuffix(u.Path, "/swagger/doc.json")
+			if bp == "" {
+				bp = "/"
+			}
+			docObj["basePath"] = bp
+			// If SWAGGER_SCHEMES not set explicitly, infer from URL scheme
+			if schemesEnv := utils.GetEnv("SWAGGER_SCHEMES", ""); schemesEnv == "" && u.Scheme != "" {
+				docObj["schemes"] = []string{u.Scheme}
+			}
+		}
+
+		// Only apply docs.SwaggerInfo overrides when swagger URL isn't an absolute external URL
+		if !swaggerIsAbs && docs.SwaggerInfo != nil {
+			if hostVal := docs.SwaggerInfo.Host; hostVal != "" {
+				host := strings.TrimSpace(hostVal)
+				// If host contains a scheme (user supplied it incorrectly), parse and extract host
+				if strings.Contains(host, "://") {
+					if u, err := url.Parse(host); err == nil {
+						if u.Host != "" {
+							host = u.Host
+						}
+						// If SWAGGER_SCHEMES not provided explicitly, infer from the parsed URL
+						if schemesEnv := utils.GetEnv("SWAGGER_SCHEMES", ""); schemesEnv == "" && u.Scheme != "" {
+							docObj["schemes"] = []string{u.Scheme}
+						}
+					} else {
+						// fallback: strip common prefixes
+						host = strings.ReplaceAll(host, "http://", "")
+						host = strings.ReplaceAll(host, "https://", "")
+						if idx := strings.Index(host, "://"); idx != -1 {
+							host = host[idx+3:]
+						}
+					}
+				}
 				docObj["host"] = host
 			}
 			if bp := docs.SwaggerInfo.BasePath; bp != "" {
