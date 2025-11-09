@@ -14,7 +14,12 @@ SWAG_CMD="${SWAG_CMD:-go run github.com/swaggo/swag/cmd/swag}"
 # `go list ./` on the repository root (which has no .go files) and emit the
 # harmless "no Go files in ./" warning. You can still override SWAG_FLAGS
 # via environment if you want a custom invocation.
-SWAG_FLAGS="${SWAG_FLAGS:-init -g main.go -o ../../docs --parseInternal --parseDependency --parseDependencyLevel 3 --parseFuncBody --dir .,../../internal}"
+# Scan only cmd/server and the handler packages under internal to avoid
+# scanning the whole internal tree twice (which can produce duplicate-route
+# warnings). Override SWAG_FLAGS if you need different behavior.
+SWAG_FLAGS="${SWAG_FLAGS:-init -g main.go -o ../../docs \
+	--parseInternal --parseDependency --parseDependencyLevel 3 --parseFuncBody \
+	--dir .,../../internal/event/handler,../../internal/guest/handler,../../internal/project/handler,../../internal/user/handler,../../internal/auth/handler}"
 
 echo "Generating swagger docs..."
 

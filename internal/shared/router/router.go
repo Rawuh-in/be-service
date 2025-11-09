@@ -1,6 +1,7 @@
 package router
 
 import (
+	"encoding/json"
 	"net/http"
 
 	authHandler "rawuh-service/internal/auth/handler"
@@ -11,7 +12,10 @@ import (
 	redisPkg "rawuh-service/internal/shared/redis"
 	userHandler "rawuh-service/internal/user/handler"
 
+	docs "rawuh-service/docs"
+
 	httpSwagger "github.com/swaggo/http-swagger"
+	"github.com/swaggo/swag"
 
 	"github.com/gorilla/mux"
 )
@@ -58,7 +62,44 @@ func NewRouter(g *guestHandler.GuestHandler, e *eventHandler.EventHandler, p *pr
 	protected.HandleFunc("/auth/me", a.TokenInfo).Methods(http.MethodGet)
 
 	r.HandleFunc("/swagger/doc.json", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "./docs/swagger.json")
+		w.Header().Set("Content-Type", "application/json")
+		doc, err := swag.ReadDoc("swagger")
+		if err != nil {
+			http.Error(w, "failed to read swagger doc", http.StatusInternalServerError)
+			return
+		}
+
+		var docObj map[string]interface{}
+		if err := json.Unmarshal([]byte(doc), &docObj); err != nil {
+			_, _ = w.Write([]byte(doc))
+			return
+		}
+
+		if docs.SwaggerInfo != nil {
+			if host := docs.SwaggerInfo.Host; host != "" {
+				docObj["host"] = host
+			}
+			if bp := docs.SwaggerInfo.BasePath; bp != "" {
+				docObj["basePath"] = bp
+			}
+		}
+
+		secDef := map[string]interface{}{
+			"Bearer": map[string]interface{}{
+				"type": "apiKey",
+				"name": "Authorization",
+				"in":   "header",
+			},
+		}
+		docObj["securityDefinitions"] = secDef
+		docObj["security"] = []interface{}{map[string]interface{}{"Bearer": []interface{}{}}}
+
+		out, err := json.Marshal(docObj)
+		if err != nil {
+			_, _ = w.Write([]byte(doc))
+			return
+		}
+		_, _ = w.Write(out)
 	})
 	r.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
 

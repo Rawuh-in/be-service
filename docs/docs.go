@@ -35,7 +35,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/auth_handler.loginRequest"
+                            "$ref": "#/definitions/handler.loginRequest"
                         }
                     }
                 ],
@@ -43,19 +43,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/auth_handler.loginResponse"
+                            "$ref": "#/definitions/handler.loginResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse"
+                            "$ref": "#/definitions/utils.APIErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse"
+                            "$ref": "#/definitions/utils.APIErrorResponse"
                         }
                     }
                 }
@@ -81,7 +81,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_project_model.CreateProjectRequest"
+                            "$ref": "#/definitions/model.CreateProjectRequest"
                         }
                     }
                 ],
@@ -89,13 +89,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_project_model.CreateProjectResponse"
+                            "$ref": "#/definitions/model.CreateProjectResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse"
+                            "$ref": "#/definitions/utils.APIErrorResponse"
                         }
                     }
                 }
@@ -132,13 +132,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_project_model.ListProjectResponse"
+                            "$ref": "#/definitions/model.ListProjectResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse"
+                            "$ref": "#/definitions/utils.APIErrorResponse"
                         }
                     }
                 }
@@ -170,13 +170,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_project_model.GetProjectDetailResponse"
+                            "$ref": "#/definitions/model.GetProjectDetailResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse"
+                            "$ref": "#/definitions/utils.APIErrorResponse"
                         }
                     }
                 }
@@ -207,7 +207,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_project_model.UpdateProjectRequest"
+                            "$ref": "#/definitions/model.UpdateProjectRequest"
                         }
                     }
                 ],
@@ -215,13 +215,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_project_model.UpdateProjectResponse"
+                            "$ref": "#/definitions/model.UpdateProjectResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse"
+                            "$ref": "#/definitions/utils.APIErrorResponse"
                         }
                     }
                 }
@@ -251,13 +251,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_project_model.DeleteProjectResponse"
+                            "$ref": "#/definitions/model.DeleteProjectResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse"
+                            "$ref": "#/definitions/utils.APIErrorResponse"
                         }
                     }
                 }
@@ -283,7 +283,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_user_model.CreateUserRequest"
+                            "$ref": "#/definitions/model.CreateUserRequest"
                         }
                     }
                 ],
@@ -291,13 +291,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_user_model.CreateUserResponse"
+                            "$ref": "#/definitions/model.CreateUserResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse"
+                            "$ref": "#/definitions/utils.APIErrorResponse"
                         }
                     }
                 }
@@ -334,13 +334,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_user_model.ListUserResponse"
+                            "$ref": "#/definitions/model.ListUserResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse"
+                            "$ref": "#/definitions/utils.APIErrorResponse"
                         }
                     }
                 }
@@ -372,13 +372,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_user_model.GetUserByIDResponse"
+                            "$ref": "#/definitions/model.GetUserByIDResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse"
+                            "$ref": "#/definitions/utils.APIErrorResponse"
                         }
                     }
                 }
@@ -409,7 +409,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_user_model.UpdateUserRequest"
+                            "$ref": "#/definitions/model.UpdateUserRequest"
                         }
                     }
                 ],
@@ -417,13 +417,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_user_model.UpdateUserResponse"
+                            "$ref": "#/definitions/model.UpdateUserResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse"
+                            "$ref": "#/definitions/utils.APIErrorResponse"
                         }
                     }
                 }
@@ -453,13 +453,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_user_model.GetUserByIDResponse"
+                            "$ref": "#/definitions/model.GetUserByIDResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse"
+                            "$ref": "#/definitions/utils.APIErrorResponse"
                         }
                     }
                 }
@@ -485,7 +485,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_event_model.CreateEventRequest"
+                            "$ref": "#/definitions/model.CreateEventRequest"
                         }
                     }
                 ],
@@ -493,13 +493,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_event_model.CreateEventResponse"
+                            "$ref": "#/definitions/model.CreateEventResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse"
+                            "$ref": "#/definitions/utils.APIErrorResponse"
                         }
                     }
                 }
@@ -536,13 +536,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_event_model.ListEventResponse"
+                            "$ref": "#/definitions/model.ListEventResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse"
+                            "$ref": "#/definitions/utils.APIErrorResponse"
                         }
                     }
                 }
@@ -574,13 +574,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_event_model.DetailEventResponse"
+                            "$ref": "#/definitions/model.DetailEventResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse"
+                            "$ref": "#/definitions/utils.APIErrorResponse"
                         }
                     }
                 }
@@ -611,7 +611,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_event_model.UpdateEventRequest"
+                            "$ref": "#/definitions/model.UpdateEventRequest"
                         }
                     }
                 ],
@@ -619,13 +619,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_event_model.UpdateEventResponse"
+                            "$ref": "#/definitions/model.UpdateEventResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse"
+                            "$ref": "#/definitions/utils.APIErrorResponse"
                         }
                     }
                 }
@@ -655,13 +655,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_event_model.DeleteEventResponse"
+                            "$ref": "#/definitions/model.DeleteEventResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse"
+                            "$ref": "#/definitions/utils.APIErrorResponse"
                         }
                     }
                 }
@@ -687,7 +687,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_guest_model.CreateGuestRequest"
+                            "$ref": "#/definitions/model.CreateGuestRequest"
                         }
                     }
                 ],
@@ -695,13 +695,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_guest_model.CreateGuestResponse"
+                            "$ref": "#/definitions/model.CreateGuestResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse"
+                            "$ref": "#/definitions/utils.APIErrorResponse"
                         }
                     }
                 }
@@ -738,13 +738,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_guest_model.ListGuestResponse"
+                            "$ref": "#/definitions/model.ListGuestResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse"
+                            "$ref": "#/definitions/utils.APIErrorResponse"
                         }
                     }
                 }
@@ -776,13 +776,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_guest_model.GetGuestByIDResponse"
+                            "$ref": "#/definitions/model.GetGuestByIDResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse"
+                            "$ref": "#/definitions/utils.APIErrorResponse"
                         }
                     }
                 }
@@ -806,7 +806,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_guest_model.UpdateGuestRequest"
+                            "$ref": "#/definitions/model.UpdateGuestRequest"
                         }
                     }
                 ],
@@ -814,13 +814,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_guest_model.UpdateGuestResponse"
+                            "$ref": "#/definitions/model.UpdateGuestResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse"
+                            "$ref": "#/definitions/utils.APIErrorResponse"
                         }
                     }
                 }
@@ -850,13 +850,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_guest_model.GetGuestByIDResponse"
+                            "$ref": "#/definitions/model.GetGuestByIDResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/rawuh-service_internal_shared_lib_utils.APIErrorResponse"
+                            "$ref": "#/definitions/utils.APIErrorResponse"
                         }
                     }
                 }
@@ -864,7 +864,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "auth_handler.loginRequest": {
+        "handler.loginRequest": {
             "type": "object",
             "properties": {
                 "password": {
@@ -875,7 +875,7 @@ const docTemplate = `{
                 }
             }
         },
-        "auth_handler.loginResponse": {
+        "handler.loginResponse": {
             "type": "object",
             "properties": {
                 "access_token": {
@@ -892,35 +892,7 @@ const docTemplate = `{
                 }
             }
         },
-        "rawuh-service_internal_auth_handler.loginRequest": {
-            "type": "object",
-            "properties": {
-                "password": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
-                }
-            }
-        },
-        "rawuh-service_internal_auth_handler.loginResponse": {
-            "type": "object",
-            "properties": {
-                "access_token": {
-                    "type": "string"
-                },
-                "code": {
-                    "type": "integer"
-                },
-                "error": {
-                    "type": "boolean"
-                },
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "rawuh-service_internal_event_model.CreateEventRequest": {
+        "model.CreateEventRequest": {
             "type": "object",
             "properties": {
                 "description": {
@@ -946,7 +918,7 @@ const docTemplate = `{
                 }
             }
         },
-        "rawuh-service_internal_event_model.CreateEventResponse": {
+        "model.CreateEventResponse": {
             "type": "object",
             "properties": {
                 "code": {
@@ -961,7 +933,33 @@ const docTemplate = `{
                 }
             }
         },
-        "rawuh-service_internal_event_model.DeleteEventResponse": {
+        "model.CreateGuestRequest": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "eventId": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "options": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "projectID": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.CreateGuestResponse": {
             "type": "object",
             "properties": {
                 "code": {
@@ -976,7 +974,107 @@ const docTemplate = `{
                 }
             }
         },
-        "rawuh-service_internal_event_model.DetailEventResponse": {
+        "model.CreateProjectRequest": {
+            "type": "object",
+            "properties": {
+                "projectName": {
+                    "type": "string"
+                },
+                "userID": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.CreateProjectResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "error": {
+                    "type": "boolean"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.CreateUserRequest": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "eventId": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "projectID": {
+                    "type": "string"
+                },
+                "userID": {
+                    "type": "string"
+                },
+                "userType": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.CreateUserResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "error": {
+                    "type": "boolean"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.DeleteEventResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "error": {
+                    "type": "boolean"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.DeleteProjectResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "error": {
+                    "type": "boolean"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.DetailEventResponse": {
             "type": "object",
             "properties": {
                 "code": {
@@ -984,7 +1082,7 @@ const docTemplate = `{
                     "format": "int32"
                 },
                 "data": {
-                    "$ref": "#/definitions/rawuh-service_internal_event_model.Event"
+                    "$ref": "#/definitions/model.Event"
                 },
                 "error": {
                     "type": "boolean"
@@ -994,7 +1092,7 @@ const docTemplate = `{
                 }
             }
         },
-        "rawuh-service_internal_event_model.Event": {
+        "model.Event": {
             "type": "object",
             "properties": {
                 "createdAt": {
@@ -1038,7 +1136,7 @@ const docTemplate = `{
                 }
             }
         },
-        "rawuh-service_internal_event_model.ListEventResponse": {
+        "model.GetGuestByIDResponse": {
             "type": "object",
             "properties": {
                 "code": {
@@ -1046,57 +1144,7 @@ const docTemplate = `{
                     "format": "int32"
                 },
                 "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/rawuh-service_internal_event_model.Event"
-                    }
-                },
-                "error": {
-                    "type": "boolean"
-                },
-                "message": {
-                    "type": "string"
-                },
-                "pagination": {
-                    "$ref": "#/definitions/rawuh-service_internal_shared_model.PaginationResponse"
-                }
-            }
-        },
-        "rawuh-service_internal_event_model.UpdateEventRequest": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "endDate": {
-                    "type": "string"
-                },
-                "eventID": {
-                    "type": "string"
-                },
-                "eventName": {
-                    "type": "string"
-                },
-                "options": {
-                    "type": "string"
-                },
-                "projectID": {
-                    "type": "string"
-                },
-                "startDate": {
-                    "type": "string"
-                },
-                "userID": {
-                    "type": "string"
-                }
-            }
-        },
-        "rawuh-service_internal_event_model.UpdateEventResponse": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "integer",
-                    "format": "int32"
+                    "$ref": "#/definitions/model.Guest"
                 },
                 "error": {
                     "type": "boolean"
@@ -1106,48 +1154,7 @@ const docTemplate = `{
                 }
             }
         },
-        "rawuh-service_internal_guest_model.CreateGuestRequest": {
-            "type": "object",
-            "properties": {
-                "address": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "eventId": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "options": {
-                    "type": "string"
-                },
-                "phone": {
-                    "type": "string"
-                },
-                "projectID": {
-                    "type": "string"
-                }
-            }
-        },
-        "rawuh-service_internal_guest_model.CreateGuestResponse": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "integer",
-                    "format": "int32"
-                },
-                "error": {
-                    "type": "boolean"
-                },
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "rawuh-service_internal_guest_model.GetGuestByIDResponse": {
+        "model.GetProjectDetailResponse": {
             "type": "object",
             "properties": {
                 "code": {
@@ -1155,7 +1162,7 @@ const docTemplate = `{
                     "format": "int32"
                 },
                 "data": {
-                    "$ref": "#/definitions/rawuh-service_internal_guest_model.Guest"
+                    "$ref": "#/definitions/model.Project"
                 },
                 "error": {
                     "type": "boolean"
@@ -1165,7 +1172,25 @@ const docTemplate = `{
                 }
             }
         },
-        "rawuh-service_internal_guest_model.Guest": {
+        "model.GetUserByIDResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "data": {
+                    "$ref": "#/definitions/rawuh-service_internal_user_model.User"
+                },
+                "error": {
+                    "type": "boolean"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.Guest": {
             "type": "object",
             "properties": {
                 "address": {
@@ -1200,7 +1225,7 @@ const docTemplate = `{
                 }
             }
         },
-        "rawuh-service_internal_guest_model.ListGuestResponse": {
+        "model.ListEventResponse": {
             "type": "object",
             "properties": {
                 "code": {
@@ -1210,7 +1235,7 @@ const docTemplate = `{
                 "data": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/rawuh-service_internal_guest_model.Guest"
+                        "$ref": "#/definitions/model.Event"
                     }
                 },
                 "error": {
@@ -1220,114 +1245,11 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "pagination": {
-                    "$ref": "#/definitions/rawuh-service_internal_shared_model.PaginationResponse"
+                    "$ref": "#/definitions/model.PaginationResponse"
                 }
             }
         },
-        "rawuh-service_internal_guest_model.UpdateGuestRequest": {
-            "type": "object",
-            "properties": {
-                "address": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "eventId": {
-                    "type": "string"
-                },
-                "guestID": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "options": {
-                    "type": "string"
-                },
-                "phone": {
-                    "type": "string"
-                },
-                "projectID": {
-                    "type": "string"
-                }
-            }
-        },
-        "rawuh-service_internal_guest_model.UpdateGuestResponse": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "integer",
-                    "format": "int32"
-                },
-                "error": {
-                    "type": "boolean"
-                },
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "rawuh-service_internal_project_model.CreateProjectRequest": {
-            "type": "object",
-            "properties": {
-                "projectName": {
-                    "type": "string"
-                },
-                "userID": {
-                    "type": "string"
-                }
-            }
-        },
-        "rawuh-service_internal_project_model.CreateProjectResponse": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "integer",
-                    "format": "int32"
-                },
-                "error": {
-                    "type": "boolean"
-                },
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "rawuh-service_internal_project_model.DeleteProjectResponse": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "integer",
-                    "format": "int32"
-                },
-                "error": {
-                    "type": "boolean"
-                },
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "rawuh-service_internal_project_model.GetProjectDetailResponse": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "integer",
-                    "format": "int32"
-                },
-                "data": {
-                    "$ref": "#/definitions/rawuh-service_internal_project_model.Project"
-                },
-                "error": {
-                    "type": "boolean"
-                },
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "rawuh-service_internal_project_model.ListProjectResponse": {
+        "model.ListGuestResponse": {
             "type": "object",
             "properties": {
                 "code": {
@@ -1337,7 +1259,7 @@ const docTemplate = `{
                 "data": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/rawuh-service_internal_project_model.Project"
+                        "$ref": "#/definitions/model.Guest"
                     }
                 },
                 "error": {
@@ -1347,11 +1269,80 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "pagination": {
-                    "$ref": "#/definitions/rawuh-service_internal_shared_model.PaginationResponse"
+                    "$ref": "#/definitions/model.PaginationResponse"
                 }
             }
         },
-        "rawuh-service_internal_project_model.Project": {
+        "model.ListProjectResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Project"
+                    }
+                },
+                "error": {
+                    "type": "boolean"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "pagination": {
+                    "$ref": "#/definitions/model.PaginationResponse"
+                }
+            }
+        },
+        "model.ListUserResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rawuh-service_internal_user_model.User"
+                    }
+                },
+                "error": {
+                    "type": "boolean"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "pagination": {
+                    "$ref": "#/definitions/model.PaginationResponse"
+                }
+            }
+        },
+        "model.PaginationResponse": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "page": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "totalPages": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "totalRows": {
+                    "type": "integer",
+                    "format": "int64"
+                }
+            }
+        },
+        "model.Project": {
             "type": "object",
             "properties": {
                 "createdAt": {
@@ -1380,7 +1371,95 @@ const docTemplate = `{
                 }
             }
         },
-        "rawuh-service_internal_project_model.UpdateProjectRequest": {
+        "model.UpdateEventRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "endDate": {
+                    "type": "string"
+                },
+                "eventID": {
+                    "type": "string"
+                },
+                "eventName": {
+                    "type": "string"
+                },
+                "options": {
+                    "type": "string"
+                },
+                "projectID": {
+                    "type": "string"
+                },
+                "startDate": {
+                    "type": "string"
+                },
+                "userID": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.UpdateEventResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "error": {
+                    "type": "boolean"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.UpdateGuestRequest": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "eventId": {
+                    "type": "string"
+                },
+                "guestID": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "options": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "projectID": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.UpdateGuestResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "error": {
+                    "type": "boolean"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.UpdateProjectRequest": {
             "type": "object",
             "properties": {
                 "options": {
@@ -1404,7 +1483,7 @@ const docTemplate = `{
                 }
             }
         },
-        "rawuh-service_internal_project_model.UpdateProjectResponse": {
+        "model.UpdateProjectResponse": {
             "type": "object",
             "properties": {
                 "code": {
@@ -1419,128 +1498,7 @@ const docTemplate = `{
                 }
             }
         },
-        "rawuh-service_internal_shared_lib_utils.APIErrorResponse": {
-            "type": "object",
-            "properties": {
-                "Code": {
-                    "type": "integer"
-                },
-                "Error": {
-                    "type": "boolean"
-                },
-                "Message": {
-                    "type": "string"
-                }
-            }
-        },
-        "rawuh-service_internal_shared_model.PaginationResponse": {
-            "type": "object",
-            "properties": {
-                "limit": {
-                    "type": "integer",
-                    "format": "int32"
-                },
-                "page": {
-                    "type": "integer",
-                    "format": "int32"
-                },
-                "totalPages": {
-                    "type": "integer",
-                    "format": "int32"
-                },
-                "totalRows": {
-                    "type": "integer",
-                    "format": "int64"
-                }
-            }
-        },
-        "rawuh-service_internal_user_model.CreateUserRequest": {
-            "type": "object",
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "eventId": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
-                },
-                "projectID": {
-                    "type": "string"
-                },
-                "userID": {
-                    "type": "string"
-                },
-                "userType": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
-                }
-            }
-        },
-        "rawuh-service_internal_user_model.CreateUserResponse": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "integer",
-                    "format": "int32"
-                },
-                "error": {
-                    "type": "boolean"
-                },
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "rawuh-service_internal_user_model.GetUserByIDResponse": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "integer",
-                    "format": "int32"
-                },
-                "data": {
-                    "$ref": "#/definitions/rawuh-service_internal_user_model.User"
-                },
-                "error": {
-                    "type": "boolean"
-                },
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "rawuh-service_internal_user_model.ListUserResponse": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "integer",
-                    "format": "int32"
-                },
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/rawuh-service_internal_user_model.User"
-                    }
-                },
-                "error": {
-                    "type": "boolean"
-                },
-                "message": {
-                    "type": "string"
-                },
-                "pagination": {
-                    "$ref": "#/definitions/rawuh-service_internal_shared_model.PaginationResponse"
-                }
-            }
-        },
-        "rawuh-service_internal_user_model.UpdateUserRequest": {
+        "model.UpdateUserRequest": {
             "type": "object",
             "properties": {
                 "email": {
@@ -1566,7 +1524,7 @@ const docTemplate = `{
                 }
             }
         },
-        "rawuh-service_internal_user_model.UpdateUserResponse": {
+        "model.UpdateUserResponse": {
             "type": "object",
             "properties": {
                 "code": {
@@ -1624,6 +1582,20 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "utils.APIErrorResponse": {
+            "type": "object",
+            "properties": {
+                "Code": {
+                    "type": "integer"
+                },
+                "Error": {
+                    "type": "boolean"
+                },
+                "Message": {
                     "type": "string"
                 }
             }

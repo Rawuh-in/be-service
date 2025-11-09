@@ -28,6 +28,8 @@ import (
 	"rawuh-service/internal/shared/redis"
 	"rawuh-service/internal/shared/router"
 
+	docs "rawuh-service/docs"
+
 	authHandler "rawuh-service/internal/auth/handler"
 	authDb "rawuh-service/internal/auth/repository"
 	authService "rawuh-service/internal/auth/service"
@@ -143,6 +145,13 @@ func main() {
 	if port == "" {
 		port = "8080" // fallback for local dev
 	}
+
+	swaggerHost := utils.GetEnv("SWAGGER_HOST", "")
+	if swaggerHost == "" {
+		swaggerHost = "localhost:" + port
+	}
+	docs.SwaggerInfo.Host = swaggerHost
+	docs.SwaggerInfo.BasePath = utils.GetEnv("SWAGGER_BASEPATH", "/")
 
 	log.Println("Server running on port:", port)
 	if err := http.ListenAndServe(":"+port, r); err != nil {
