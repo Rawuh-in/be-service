@@ -27,7 +27,8 @@ type CreateGuestRequest struct {
 	Phone     string
 	Email     string
 	EventId   string
-	Options   string
+	EventData string
+	GuestData string
 }
 
 type CreateGuestResponse struct {
@@ -43,7 +44,8 @@ type UpdateGuestRequest struct {
 	Phone     string
 	Email     string
 	EventId   string
-	Options   string
+	EventData string
+	GuestData string
 }
 
 type UpdateGuestResponse struct {

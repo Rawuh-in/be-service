@@ -939,7 +939,10 @@ const docTemplate = `{
                 "eventName": {
                     "type": "string"
                 },
-                "options": {
+                "eventOptions": {
+                    "type": "string"
+                },
+                "guestOptions": {
                     "type": "string"
                 },
                 "projectID": {
@@ -977,13 +980,16 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
+                "eventData": {
+                    "type": "string"
+                },
                 "eventId": {
                     "type": "string"
                 },
-                "name": {
+                "guestData": {
                     "type": "string"
                 },
-                "options": {
+                "name": {
                     "type": "string"
                 },
                 "phone": {
@@ -1151,7 +1157,10 @@ const docTemplate = `{
                 "eventName": {
                     "type": "string"
                 },
-                "options": {
+                "eventOptions": {
+                    "type": "string"
+                },
+                "guestOptions": {
                     "type": "string"
                 },
                 "projectID": {
@@ -1237,16 +1246,19 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
+                "eventData": {
+                    "type": "string"
+                },
                 "eventId": {
                     "type": "integer"
+                },
+                "guestData": {
+                    "type": "string"
                 },
                 "guestID": {
                     "type": "integer"
                 },
                 "name": {
-                    "type": "string"
-                },
-                "options": {
                     "type": "string"
                 },
                 "phone": {
@@ -1421,7 +1433,10 @@ const docTemplate = `{
                 "eventName": {
                     "type": "string"
                 },
-                "options": {
+                "eventOptions": {
+                    "type": "string"
+                },
+                "guestOptions": {
                     "type": "string"
                 },
                 "projectID": {
@@ -1459,16 +1474,19 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
+                "eventData": {
+                    "type": "string"
+                },
                 "eventId": {
+                    "type": "string"
+                },
+                "guestData": {
                     "type": "string"
                 },
                 "guestID": {
                     "type": "string"
                 },
                 "name": {
-                    "type": "string"
-                },
-                "options": {
                     "type": "string"
                 },
                 "phone": {

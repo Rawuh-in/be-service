@@ -57,14 +57,15 @@ func (p *EventRepository) CreateEvent(ctx context.Context, req *eventModel.Creat
 
 	now := time.Now()
 	data := &eventModel.Event{
-		EventName:   req.EventName,
-		Description: req.Description,
-		Options:     req.Options,
-		StartDate:   req.StartDate,
-		EndDate:     req.EndDate,
-		CreatedById: currentUser.UserID,
-		ProjectID:   currentUser.ProjectID,
-		CreatedAt:   &now,
+		EventName:    req.EventName,
+		Description:  req.Description,
+		EventOptions: req.EventOptions,
+		GuestOptions: req.GuestOptions,
+		StartDate:    req.StartDate,
+		EndDate:      req.EndDate,
+		CreatedById:  currentUser.UserID,
+		ProjectID:    currentUser.ProjectID,
+		CreatedAt:    &now,
 	}
 
 	if err := query.Omit("event_id").Create(data).Error; err != nil {
@@ -84,14 +85,15 @@ func (p *EventRepository) UpdateEvent(ctx context.Context, req *eventModel.Updat
 
 	now := time.Now()
 	data := &eventModel.Event{
-		EventName:   req.EventName,
-		Description: req.Description,
-		Options:     req.Options,
-		StartDate:   req.StartDate,
-		EndDate:     req.EndDate,
-		ProjectID:   currentUser.ProjectID,
-		UpdatedAt:   &now,
-		UpdatedById: currentUser.UserID,
+		EventName:    req.EventName,
+		Description:  req.Description,
+		EventOptions: req.EventOptions,
+		GuestOptions: req.GuestOptions,
+		StartDate:    req.StartDate,
+		EndDate:      req.EndDate,
+		ProjectID:    currentUser.ProjectID,
+		UpdatedAt:    &now,
+		UpdatedById:  currentUser.UserID,
 	}
 
 	res := query.Updates(data)

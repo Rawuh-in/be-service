@@ -10,7 +10,8 @@ type Event struct {
 	Description   string     `gorm:"type:varchar(500)"`
 	StartDate     *time.Time `gorm:"type:timestamp"`
 	EndDate       *time.Time `gorm:"type:timestamp"`
-	Options       string     `gorm:"type:jsonb"`
+	EventOptions  string     `gorm:"type:jsonb"`
+	GuestOptions  string     `gorm:"type:jsonb"`
 	CreatedAt     *time.Time `gorm:"type:timestamp"`
 	UpdatedAt     *time.Time `gorm:"type:timestamp"`
 	ProjectID     int64      `gorm:"type:integer[]"`

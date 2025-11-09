@@ -12,5 +12,6 @@ type Guest struct {
 	CreatedAt *time.Time `gorm:"type:timestamp"`
 	UpdatedAt *time.Time `gorm:"type:timestamp"`
 	ProjectID int64      `gorm:"type:integer"`
-	Options   string     `gorm:"type:text"`
+	EventData string     `gorm:"type:text"`
+	GuestData string     `gorm:"type:text"`
 }

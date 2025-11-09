@@ -26,7 +26,9 @@ definitions:
         type: string
       eventName:
         type: string
-      options:
+      eventOptions:
+        type: string
+      guestOptions:
         type: string
       projectID:
         type: string
@@ -51,11 +53,13 @@ definitions:
         type: string
       email:
         type: string
+      eventData:
+        type: string
       eventId:
         type: string
-      name:
+      guestData:
         type: string
-      options:
+      name:
         type: string
       phone:
         type: string
@@ -166,7 +170,9 @@ definitions:
         type: integer
       eventName:
         type: string
-      options:
+      eventOptions:
+        type: string
+      guestOptions:
         type: string
       projectID:
         type: integer
@@ -223,13 +229,15 @@ definitions:
         type: string
       email:
         type: string
+      eventData:
+        type: string
       eventId:
         type: integer
+      guestData:
+        type: string
       guestID:
         type: integer
       name:
-        type: string
-      options:
         type: string
       phone:
         type: string
@@ -346,7 +354,9 @@ definitions:
         type: string
       eventName:
         type: string
-      options:
+      eventOptions:
+        type: string
+      guestOptions:
         type: string
       projectID:
         type: string
@@ -371,13 +381,15 @@ definitions:
         type: string
       email:
         type: string
+      eventData:
+        type: string
       eventId:
+        type: string
+      guestData:
         type: string
       guestID:
         type: string
       name:
-        type: string
-      options:
         type: string
       phone:
         type: string
