@@ -18,8 +18,14 @@ func AuthMiddleware(rdb *redisPkg.Redis) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			auth := r.Header.Get("Authorization")
-			if auth != "" && strings.HasPrefix(strings.ToLower(auth), "bearer ") {
-				token := strings.TrimSpace(auth[len("Bearer "):])
+			if auth != "" {
+				// Remove "Bearer " prefix if it exists
+				token := auth
+				if strings.HasPrefix(strings.ToLower(auth), "bearer ") {
+					token = strings.TrimSpace(auth[len("Bearer "):])
+				} else {
+					token = strings.TrimSpace(auth)
+				}
 				if token != "" {
 					key := "access_token:" + token
 					if val, err := rdb.Get(r.Context(), key); err == nil && val != "" {

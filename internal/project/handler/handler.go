@@ -29,6 +29,7 @@ func NewProjectHandler(svc projectService.ProjectService) *ProjectHandler {
 // @Tags project
 // @Accept json
 // @Produce json
+// @Security Bearer
 // @Param page query int false "page"
 // @Param limit query int false "limit"
 // @Success 200 {object} projectModel.ListProjectResponse
@@ -86,6 +87,7 @@ func (h *ProjectHandler) ListProject(w http.ResponseWriter, r *http.Request) {
 // @Description Create a new project
 // @Tags project
 // @Accept json
+// @Security Bearer
 // @Produce json
 // @Param body body projectModel.CreateProjectRequest true "CreateProjectRequest"
 // @Success 200 {object} projectModel.CreateProjectResponse
