@@ -288,17 +288,29 @@ func (s *eventService) AddEvent(ctx context.Context, req *eventModel.CreateEvent
 
 	loggerZap.Info("Start AddEvent with data ", req)
 
-	if req.Options != "" {
+	if req.EventOptions != "" {
 		var optionStr map[string]interface{}
-		if err := json.Unmarshal([]byte(req.Options), &optionStr); err != nil {
+		if err := json.Unmarshal([]byte(req.EventOptions), &optionStr); err != nil {
 			return fmt.Errorf("invalid JSON format: %w", err)
 		}
 
 		utils.SanitizeJSON(optionStr)
 		optionData, _ := json.Marshal(optionStr)
-		req.Options = string(optionData)
+		req.EventOptions = string(optionData)
 	} else {
-		req.Options = "{}"
+		req.EventOptions = "{}"
+	}
+	if req.GuestOptions != "" {
+		var optionStr map[string]interface{}
+		if err := json.Unmarshal([]byte(req.GuestOptions), &optionStr); err != nil {
+			return fmt.Errorf("invalid JSON format: %w", err)
+		}
+
+		utils.SanitizeJSON(optionStr)
+		optionData, _ := json.Marshal(optionStr)
+		req.GuestOptions = string(optionData)
+	} else {
+		req.GuestOptions = "{}"
 	}
 
 	err := s.dbProvider.CreateEvent(ctx, req, currentUser)
@@ -365,19 +377,29 @@ func (s *eventService) UpdateEvent(ctx context.Context, req *eventModel.UpdateEv
 	}
 	loggerZap.Info("Start UpdateEvent with data ", req)
 
-	if req.Options != "" {
+	if req.EventOptions != "" {
 		var optionStr map[string]interface{}
-		if err := json.Unmarshal([]byte(req.Options), &optionStr); err != nil {
+		if err := json.Unmarshal([]byte(req.EventOptions), &optionStr); err != nil {
 			return fmt.Errorf("invalid JSON format: %w", err)
 		}
 
 		utils.SanitizeJSON(optionStr)
-
 		optionData, _ := json.Marshal(optionStr)
-
-		req.Options = string(optionData)
+		req.EventOptions = string(optionData)
 	} else {
-		req.Options = "{}"
+		req.EventOptions = "{}"
+	}
+	if req.GuestOptions != "" {
+		var optionStr map[string]interface{}
+		if err := json.Unmarshal([]byte(req.GuestOptions), &optionStr); err != nil {
+			return fmt.Errorf("invalid JSON format: %w", err)
+		}
+
+		utils.SanitizeJSON(optionStr)
+		optionData, _ := json.Marshal(optionStr)
+		req.GuestOptions = string(optionData)
+	} else {
+		req.GuestOptions = "{}"
 	}
 
 	err := s.dbProvider.UpdateEvent(ctx, req, currentUser)

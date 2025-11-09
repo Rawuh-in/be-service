@@ -64,7 +64,7 @@ func (s *guestService) AddGuest(ctx context.Context, req *guestModel.CreateGuest
 	case constant.UserTypeSystemAdmin:
 		// system admin can access all projects
 	case constant.UserTypeProjectUser:
-		if req.ProjectID != fmt.Sprintf("%d", currentUser.ProjectID) {
+		if req.ProjectID != fmt.Sprintf("%d", currentUser.ProjectID) || req.EventId != fmt.Sprintf("%d", currentUser.EventID) {
 			loggerZap.Error("err GetMeFromMD unauthorized user", nil)
 			return status.Error(codes.PermissionDenied, "Permission Denied")
 		}
@@ -101,18 +101,30 @@ func (s *guestService) AddGuest(ctx context.Context, req *guestModel.CreateGuest
 
 	loggerZap.Info("Start CreateGuest with data ", req)
 
-	if req.Options != "" {
-
+	if req.EventData != "" {
 		var optionStr map[string]interface{}
-		if err := json.Unmarshal([]byte(req.Options), &optionStr); err != nil {
+		if err := json.Unmarshal([]byte(req.EventData), &optionStr); err != nil {
 			return fmt.Errorf("invalid JSON format: %w", err)
 		}
 
 		utils.SanitizeJSON(optionStr)
 		optionData, _ := json.Marshal(optionStr)
-		req.Options = string(optionData)
+		req.EventData = string(optionData)
 	} else {
-		req.Options = "{}"
+		req.EventData = "{}"
+	}
+
+	if req.GuestData != "" {
+		var optionStr map[string]interface{}
+		if err := json.Unmarshal([]byte(req.GuestData), &optionStr); err != nil {
+			return fmt.Errorf("invalid JSON format: %w", err)
+		}
+
+		utils.SanitizeJSON(optionStr)
+		optionData, _ := json.Marshal(optionStr)
+		req.GuestData = string(optionData)
+	} else {
+		req.GuestData = "{}"
 	}
 
 	err := s.dbProvider.CreateGuest(ctx, req, currentUser)
@@ -143,7 +155,7 @@ func (s *guestService) UpdateGuestByID(ctx context.Context, req *guestModel.Upda
 	case constant.UserTypeSystemAdmin:
 		// system admin can access all projects
 	case constant.UserTypeProjectUser:
-		if req.ProjectID != fmt.Sprintf("%d", currentUser.ProjectID) {
+		if req.ProjectID != fmt.Sprintf("%d", currentUser.ProjectID) || req.EventId != fmt.Sprintf("%d", currentUser.EventID) {
 			loggerZap.Error("err GetMeFromMD unauthorized user", nil)
 			return status.Error(codes.PermissionDenied, "Permission Denied")
 		}
@@ -182,17 +194,30 @@ func (s *guestService) UpdateGuestByID(ctx context.Context, req *guestModel.Upda
 		}
 	}
 
-	if req.Options != "" {
+	if req.EventData != "" {
 		var optionStr map[string]interface{}
-		if err := json.Unmarshal([]byte(req.Options), &optionStr); err != nil {
+		if err := json.Unmarshal([]byte(req.EventData), &optionStr); err != nil {
 			return fmt.Errorf("invalid JSON format: %w", err)
 		}
 
 		utils.SanitizeJSON(optionStr)
 		optionData, _ := json.Marshal(optionStr)
-		req.Options = string(optionData)
+		req.EventData = string(optionData)
 	} else {
-		req.Options = "{}"
+		req.EventData = "{}"
+	}
+
+	if req.GuestData != "" {
+		var optionStr map[string]interface{}
+		if err := json.Unmarshal([]byte(req.GuestData), &optionStr); err != nil {
+			return fmt.Errorf("invalid JSON format: %w", err)
+		}
+
+		utils.SanitizeJSON(optionStr)
+		optionData, _ := json.Marshal(optionStr)
+		req.GuestData = string(optionData)
+	} else {
+		req.GuestData = "{}"
 	}
 
 	loggerZap.Info("Start UpdateGuest with data ", req)
@@ -225,7 +250,7 @@ func (s *guestService) ListGuests(ctx context.Context, req *guestModel.ListGuest
 	case constant.UserTypeSystemAdmin:
 		// system admin can access all projects
 	case constant.UserTypeProjectUser:
-		if req.ProjectID != fmt.Sprintf("%d", currentUser.ProjectID) {
+		if req.ProjectID != fmt.Sprintf("%d", currentUser.ProjectID) || req.EventId != fmt.Sprintf("%d", currentUser.EventID) {
 			loggerZap.Error("err GetMeFromMD unauthorized user", nil)
 			return nil, status.Error(codes.PermissionDenied, "Permission Denied")
 		}
@@ -283,7 +308,7 @@ func (s *guestService) ListGuests(ctx context.Context, req *guestModel.ListGuest
 	}
 
 	loggerZap.Info("Start ListGuests")
-	guest, err := s.dbProvider.ListGuests(ctx, currentUser, pagination, sqlBuilder, sort)
+	guest, err := s.dbProvider.ListGuests(ctx, req, pagination, sqlBuilder, sort)
 	if err != nil {
 		s.logger.Error("err ListGuests ", err)
 		return nil, status.Error(codes.Internal, "Internal Server Error")
@@ -324,7 +349,7 @@ func (s *guestService) GetGuestByID(ctx context.Context, req *guestModel.GetGues
 	case constant.UserTypeSystemAdmin:
 		// system admin can access all projects
 	case constant.UserTypeProjectUser:
-		if req.ProjectID != fmt.Sprintf("%d", currentUser.ProjectID) {
+		if req.ProjectID != fmt.Sprintf("%d", currentUser.ProjectID) || req.EventId != fmt.Sprintf("%d", currentUser.EventID) {
 			loggerZap.Error("err GetMeFromMD unauthorized user", nil)
 			return nil, status.Error(codes.PermissionDenied, "Permission Denied")
 		}
@@ -336,7 +361,7 @@ func (s *guestService) GetGuestByID(ctx context.Context, req *guestModel.GetGues
 	loggerZap.Info("Start GetGuestByID with req : ", req)
 
 	loggerZap.Info("Start GetGuestByID")
-	guest, err := s.dbProvider.GetGuestByID(ctx, req.GuestID, currentUser)
+	guest, err := s.dbProvider.GetGuestByID(ctx, req)
 	if err != nil {
 		loggerZap.Error("err GetGuestByID ", err)
 		return nil, status.Error(codes.Internal, "Internal Server Error")
@@ -381,7 +406,7 @@ func (s *guestService) DeleteGuestByID(ctx context.Context, req *guestModel.Dele
 	case constant.UserTypeSystemAdmin:
 		// system admin can access all projects
 	case constant.UserTypeProjectUser:
-		if req.ProjectID != fmt.Sprintf("%d", currentUser.ProjectID) {
+		if req.ProjectID != fmt.Sprintf("%d", currentUser.ProjectID) || req.EventId != fmt.Sprintf("%d", currentUser.EventID) {
 			loggerZap.Error("err GetMeFromMD unauthorized user", nil)
 			return status.Error(codes.PermissionDenied, "Permission Denied")
 		}
@@ -393,7 +418,7 @@ func (s *guestService) DeleteGuestByID(ctx context.Context, req *guestModel.Dele
 	loggerZap.Info("Start DeleteGuestByID with req : ", req)
 
 	loggerZap.Info("Start DeleteGuestByID")
-	err := s.dbProvider.DeleteGuestByID(ctx, req.GuestID, currentUser)
+	err := s.dbProvider.DeleteGuestByID(ctx, req)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			loggerZap.Warn("guest not found", err)

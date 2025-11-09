@@ -23,13 +23,14 @@ type ListEventResponse struct {
 }
 
 type CreateEventRequest struct {
-	EventName   string
-	Description string
-	Options     string
-	StartDate   *time.Time
-	EndDate     *time.Time
-	UserID      string
-	ProjectID   string
+	EventName    string
+	Description  string
+	EventOptions string
+	GuestOptions string
+	StartDate    *time.Time
+	EndDate      *time.Time
+	UserID       string
+	ProjectID    string
 }
 
 type CreateEventResponse struct {
@@ -39,14 +40,15 @@ type CreateEventResponse struct {
 }
 
 type UpdateEventRequest struct {
-	ProjectID   string
-	EventID     string
-	EventName   string
-	Description string
-	Options     string
-	StartDate   *time.Time
-	EndDate     *time.Time
-	UserID      string
+	ProjectID    string
+	EventID      string
+	EventName    string
+	Description  string
+	EventOptions string
+	GuestOptions string
+	StartDate    *time.Time
+	EndDate      *time.Time
+	UserID       string
 }
 
 type UpdateEventResponse struct {

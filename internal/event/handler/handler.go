@@ -169,13 +169,14 @@ func (h *EventHandler) AddEvent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	req := &eventModel.CreateEventRequest{
-		EventName:   p.EventName,
-		Description: p.Description,
-		Options:     p.Options,
-		StartDate:   p.StartDate,
-		EndDate:     p.EndDate,
-		UserID:      p.UserID,
-		ProjectID:   mux.Vars(r)["project_id"],
+		EventName:    p.EventName,
+		Description:  p.Description,
+		EventOptions: p.EventOptions,
+		GuestOptions: p.GuestOptions,
+		StartDate:    p.StartDate,
+		EndDate:      p.EndDate,
+		UserID:       p.UserID,
+		ProjectID:    mux.Vars(r)["project_id"],
 	}
 
 	if err := h.svc.AddEvent(ctx, req); err != nil {
@@ -228,14 +229,15 @@ func (h *EventHandler) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	req := &eventModel.UpdateEventRequest{
-		ProjectID:   mux.Vars(r)["project_id"],
-		EventID:     mux.Vars(r)["event_id"],
-		EventName:   p.EventName,
-		Description: p.Description,
-		Options:     p.Options,
-		StartDate:   p.StartDate,
-		EndDate:     p.EndDate,
-		UserID:      p.UserID,
+		ProjectID:    mux.Vars(r)["project_id"],
+		EventID:      mux.Vars(r)["event_id"],
+		EventName:    p.EventName,
+		Description:  p.Description,
+		EventOptions: p.EventOptions,
+		GuestOptions: p.GuestOptions,
+		StartDate:    p.StartDate,
+		EndDate:      p.EndDate,
+		UserID:       p.UserID,
 	}
 
 	if err := h.svc.UpdateEvent(ctx, req); err != nil {

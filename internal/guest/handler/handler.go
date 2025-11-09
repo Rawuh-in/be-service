@@ -38,8 +38,9 @@ func (h *GuestHandler) AddGuest(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	result := &guestModel.CreateGuestResponse{
-		Error: false,
-		Code:  http.StatusOK,
+		Error:   false,
+		Code:    http.StatusOK,
+		Message: "Success create new guest",
 	}
 
 	if payloadMap, okp := middleware.GetAuthPayload(ctx); okp {
@@ -62,7 +63,8 @@ func (h *GuestHandler) AddGuest(w http.ResponseWriter, r *http.Request) {
 		Address:   p.Address,
 		Phone:     p.Phone,
 		Email:     p.Email,
-		Options:   p.Options,
+		EventData: p.EventData,
+		GuestData: p.GuestData,
 		EventId:   mux.Vars(r)["event_id"],
 		ProjectID: mux.Vars(r)["project_id"],
 	}
@@ -118,7 +120,8 @@ func (h *GuestHandler) UpdateGuestByID(w http.ResponseWriter, r *http.Request) {
 		ProjectID: mux.Vars(r)["project_id"],
 		EventId:   mux.Vars(r)["event_id"],
 		GuestID:   mux.Vars(r)["guest_id"],
-		Options:   p.Options,
+		EventData: p.EventData,
+		GuestData: p.GuestData,
 		Name:      p.Name,
 		Address:   p.Address,
 		Phone:     p.Phone,
