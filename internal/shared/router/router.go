@@ -3,6 +3,7 @@ package router
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	authHandler "rawuh-service/internal/auth/handler"
 	eventHandler "rawuh-service/internal/event/handler"
@@ -13,6 +14,8 @@ import (
 	userHandler "rawuh-service/internal/user/handler"
 
 	docs "rawuh-service/docs"
+
+	"rawuh-service/internal/shared/lib/utils"
 
 	httpSwagger "github.com/swaggo/http-swagger"
 	"github.com/swaggo/swag"
@@ -61,6 +64,10 @@ func NewRouter(g *guestHandler.GuestHandler, e *eventHandler.EventHandler, p *pr
 	r.HandleFunc("/login", a.Login).Methods(http.MethodPost)
 	protected.HandleFunc("/auth/me", a.TokenInfo).Methods(http.MethodGet)
 
+	// Allow overriding the swagger spec URL via env var SWAGGER_URL
+	// default points to the local handler below: /swagger/doc.json
+	swaggerURL := utils.GetEnv("SWAGGER_URL", "/swagger/doc.json")
+
 	r.HandleFunc("/swagger/doc.json", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		doc, err := swag.ReadDoc("swagger")
@@ -68,7 +75,6 @@ func NewRouter(g *guestHandler.GuestHandler, e *eventHandler.EventHandler, p *pr
 			http.Error(w, "failed to read swagger doc", http.StatusInternalServerError)
 			return
 		}
-
 		var docObj map[string]interface{}
 		if err := json.Unmarshal([]byte(doc), &docObj); err != nil {
 			_, _ = w.Write([]byte(doc))
@@ -94,6 +100,19 @@ func NewRouter(g *guestHandler.GuestHandler, e *eventHandler.EventHandler, p *pr
 		docObj["securityDefinitions"] = secDef
 		docObj["security"] = []interface{}{map[string]interface{}{"Bearer": []interface{}{}}}
 
+		// Optionally override schemes (e.g. https) via SWAGGER_SCHEMES env (comma-separated)
+		if schemesEnv := utils.GetEnv("SWAGGER_SCHEMES", ""); schemesEnv != "" {
+			schemes := []string{}
+			for _, s := range strings.Split(schemesEnv, ",") {
+				if v := strings.TrimSpace(s); v != "" {
+					schemes = append(schemes, v)
+				}
+			}
+			if len(schemes) > 0 {
+				docObj["schemes"] = schemes
+			}
+		}
+
 		out, err := json.Marshal(docObj)
 		if err != nil {
 			_, _ = w.Write([]byte(doc))
@@ -101,7 +120,7 @@ func NewRouter(g *guestHandler.GuestHandler, e *eventHandler.EventHandler, p *pr
 		}
 		_, _ = w.Write(out)
 	})
-	r.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
+	r.PathPrefix("/swagger/").Handler(httpSwagger.Handler(httpSwagger.URL(swaggerURL)))
 
 	return r
 }
