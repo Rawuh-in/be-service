@@ -15,7 +15,7 @@ func CORSMiddleware(next http.Handler) http.Handler {
 		origin := r.Header.Get("Origin")
 
 		// Build allowed origins list from env or use sensible defaults
-		allowedEnv := utils.GetEnv("ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000")
+		allowedEnv := utils.GetEnv("ALLOWED_ORIGINS", "http://localhost:3000,https://localhost:3000,http://127.0.0.1:3000,https://127.0.0.1:3000")
 		allowed := map[string]struct{}{}
 		for _, o := range strings.Split(allowedEnv, ",") {
 			if v := strings.TrimSpace(o); v != "" {
