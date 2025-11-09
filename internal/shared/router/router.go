@@ -60,8 +60,8 @@ func NewRouter(g *guestHandler.GuestHandler, e *eventHandler.EventHandler, p *pr
 	protected.HandleFunc("/users/{user_id}", u.DeleteUserByID).Methods(http.MethodDelete)
 
 	// AUTH ROUTES
-	r.HandleFunc("/login", a.Login).Methods(http.MethodPost)
-	protected.HandleFunc("/auth/me", a.TokenInfo).Methods(http.MethodGet)
+	r.HandleFunc("/login", a.Login).Methods(http.MethodPost, http.MethodOptions)
+	protected.HandleFunc("/auth/me", a.TokenInfo).Methods(http.MethodGet, http.MethodOptions)
 
 	r.HandleFunc("/swagger/doc.json", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
