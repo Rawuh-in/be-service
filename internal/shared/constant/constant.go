@@ -16,4 +16,7 @@ const (
 
 	UserTypeSystemAdmin = "SYSTEM_ADMIN"
 	UserTypeProjectUser = "PROJECT_USER"
+
+	AttendanceTypeCheckIn  = "CHECK_IN"
+	AttendanceTypeCheckOut = "CHECK_OUT"
 )
