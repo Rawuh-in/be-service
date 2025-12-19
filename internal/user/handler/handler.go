@@ -70,14 +70,9 @@ func (h *UserHandler) AddUser(w http.ResponseWriter, r *http.Request) {
 	if err := h.svc.AddUser(ctx, req); err != nil {
 		utils.HandleGrpcError(w, err)
 		return
-
 	}
 
-	result.Error = false
-	result.Code = http.StatusOK
-	w.Header().Add("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(result)
+	utils.WriteJSONSuccess(w, result)
 }
 
 // UpdateUserByID godoc
@@ -131,11 +126,7 @@ func (h *UserHandler) UpdateUserByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result.Error = false
-	result.Code = http.StatusOK
-	w.Header().Add("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(result)
+	utils.WriteJSONSuccess(w, result)
 }
 
 // ListUsers godoc
@@ -192,11 +183,8 @@ func (h *UserHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
 		utils.HandleGrpcError(w, err)
 		return
 	}
-	result.Error = false
-	result.Code = http.StatusOK
-	w.Header().Add("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(guests)
+
+	utils.WriteJSONSuccess(w, guests)
 }
 
 // GetUserByID godoc
@@ -235,11 +223,8 @@ func (h *UserHandler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 		utils.HandleGrpcError(w, err)
 		return
 	}
-	result.Error = false
-	result.Code = http.StatusOK
-	w.Header().Add("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(guest)
+
+	utils.WriteJSONSuccess(w, guest)
 }
 
 // DeleteUserByID godoc
@@ -279,9 +264,5 @@ func (h *UserHandler) DeleteUserByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result.Error = false
-	result.Code = http.StatusOK
-	w.Header().Add("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(result)
+	utils.WriteJSONSuccess(w, result)
 }

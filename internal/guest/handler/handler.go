@@ -71,14 +71,9 @@ func (h *GuestHandler) AddGuest(w http.ResponseWriter, r *http.Request) {
 	if err := h.svc.AddGuest(ctx, req); err != nil {
 		utils.HandleGrpcError(w, err)
 		return
-
 	}
 
-	result.Error = false
-	result.Code = http.StatusOK
-	w.Header().Add("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(result)
+	utils.WriteJSONSuccess(w, result)
 }
 
 // UpdateGuestByID godoc
@@ -132,11 +127,7 @@ func (h *GuestHandler) UpdateGuestByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result.Error = false
-	result.Code = http.StatusOK
-	w.Header().Add("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(result)
+	utils.WriteJSONSuccess(w, result)
 }
 
 // ListGuests godoc
@@ -154,10 +145,10 @@ func (h *GuestHandler) UpdateGuestByID(w http.ResponseWriter, r *http.Request) {
 func (h *GuestHandler) ListGuests(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	result := &guestModel.ListGuestResponse{
-		Error: false,
-		Code:  http.StatusOK,
-	}
+	// result := &guestModel.ListGuestResponse{
+	// 	Error: false,
+	// 	Code:  http.StatusOK,
+	// }
 
 	if payloadMap, okp := middleware.GetAuthPayload(ctx); okp {
 		ctx = context.WithValue(ctx, middleware.ContextKeyAuthPayload, payloadMap)
@@ -191,11 +182,8 @@ func (h *GuestHandler) ListGuests(w http.ResponseWriter, r *http.Request) {
 		utils.HandleGrpcError(w, err)
 		return
 	}
-	result.Error = false
-	result.Code = http.StatusOK
-	w.Header().Add("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(guests)
+
+	utils.WriteJSONSuccess(w, guests)
 }
 
 // GetGuestByID godoc
@@ -212,10 +200,10 @@ func (h *GuestHandler) ListGuests(w http.ResponseWriter, r *http.Request) {
 func (h *GuestHandler) GetGuestByID(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	result := &guestModel.GetGuestByIDResponse{
-		Error: false,
-		Code:  http.StatusOK,
-	}
+	// result := &guestModel.GetGuestByIDResponse{
+	// 	Error: false,
+	// 	Code:  http.StatusOK,
+	// }
 
 	if payloadMap, okp := middleware.GetAuthPayload(ctx); okp {
 		ctx = context.WithValue(ctx, middleware.ContextKeyAuthPayload, payloadMap)
@@ -232,11 +220,8 @@ func (h *GuestHandler) GetGuestByID(w http.ResponseWriter, r *http.Request) {
 		utils.HandleGrpcError(w, err)
 		return
 	}
-	result.Error = false
-	result.Code = http.StatusOK
-	w.Header().Add("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(guest)
+
+	utils.WriteJSONSuccess(w, guest)
 }
 
 // DeleteGuestByID godoc
@@ -275,9 +260,5 @@ func (h *GuestHandler) DeleteGuestByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result.Error = false
-	result.Code = http.StatusOK
-	w.Header().Add("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(result)
+	utils.WriteJSONSuccess(w, result)
 }

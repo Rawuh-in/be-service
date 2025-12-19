@@ -208,6 +208,13 @@ func GenerateProcessId() string {
 	return uuid.New().String()
 }
 
+// WriteJSONSuccess writes a successful JSON response with status 200 OK
+func WriteJSONSuccess(w http.ResponseWriter, data interface{}) {
+	w.Header().Add("content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(data)
+}
+
 var reUnsafe = regexp.MustCompile(`[;'"]|(?i)script|(?i)select|(?i)insert|(?i)delete|(?i)drop|(?i)update|(?i)union`)
 
 func SanitizeJSON(obj map[string]interface{}) {

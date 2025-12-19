@@ -37,10 +37,10 @@ func NewProjectHandler(svc projectService.ProjectService) *ProjectHandler {
 // @Router /project/list [get]
 
 func (h *ProjectHandler) ListProject(w http.ResponseWriter, r *http.Request) {
-	result := &projectModel.ListProjectResponse{
-		Error: false,
-		Code:  http.StatusOK,
-	}
+	// result := &projectModel.ListProjectResponse{
+	// 	Error: false,
+	// 	Code:  http.StatusOK,
+	// }
 
 	ctx := r.Context()
 
@@ -75,11 +75,8 @@ func (h *ProjectHandler) ListProject(w http.ResponseWriter, r *http.Request) {
 		utils.HandleGrpcError(w, err)
 		return
 	}
-	result.Error = false
-	result.Code = http.StatusOK
-	w.Header().Add("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(guests)
+
+	utils.WriteJSONSuccess(w, guests)
 }
 
 // CreateProject godoc
@@ -128,11 +125,8 @@ func (h *ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 		utils.HandleGrpcError(w, err)
 		return
 	}
-	result.Error = false
-	result.Code = http.StatusOK
-	w.Header().Add("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(result)
+
+	utils.WriteJSONSuccess(w, result)
 }
 
 // UpdateProject godoc
@@ -183,11 +177,8 @@ func (h *ProjectHandler) UpdateProject(w http.ResponseWriter, r *http.Request) {
 		utils.HandleGrpcError(w, err)
 		return
 	}
-	result.Error = false
-	result.Code = http.StatusOK
-	w.Header().Add("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(result)
+
+	utils.WriteJSONSuccess(w, result)
 }
 
 // DeleteProject godoc
@@ -234,11 +225,8 @@ func (h *ProjectHandler) DeleteProject(w http.ResponseWriter, r *http.Request) {
 		utils.HandleGrpcError(w, err)
 		return
 	}
-	result.Error = false
-	result.Code = http.StatusOK
-	w.Header().Add("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(result)
+
+	utils.WriteJSONSuccess(w, result)
 }
 
 // DetailProject godoc
@@ -255,10 +243,10 @@ func (h *ProjectHandler) DeleteProject(w http.ResponseWriter, r *http.Request) {
 func (h *ProjectHandler) DetailProject(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	result := &projectModel.GetProjectDetailResponse{
-		Error: false,
-		Code:  http.StatusOK,
-	}
+	// result := &projectModel.GetProjectDetailResponse{
+	// 	Error: false,
+	// 	Code:  http.StatusOK,
+	// }
 
 	if payloadMap, okp := middleware.GetAuthPayload(ctx); okp {
 		ctx = context.WithValue(ctx, middleware.ContextKeyAuthPayload, payloadMap)
@@ -274,9 +262,6 @@ func (h *ProjectHandler) DetailProject(w http.ResponseWriter, r *http.Request) {
 		utils.HandleGrpcError(w, err)
 		return
 	}
-	result.Error = false
-	result.Code = http.StatusOK
-	w.Header().Add("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(project)
+
+	utils.WriteJSONSuccess(w, project)
 }

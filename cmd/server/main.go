@@ -12,6 +12,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	attendanceHandler "rawuh-service/internal/attendance/handler"
+	attendanceDb "rawuh-service/internal/attendance/repository"
+	attendanceService "rawuh-service/internal/attendance/service"
 	eventHandler "rawuh-service/internal/event/handler"
 	eventDb "rawuh-service/internal/event/repository"
 	eventService "rawuh-service/internal/event/service"
@@ -103,6 +106,7 @@ func main() {
 	eventDB := eventDb.NewEventRepository(dbProvider)
 	projectDB := projectDb.NewProjectRepository(dbProvider)
 	userDB := userDb.NewUserRepository(dbProvider)
+	attendanceDB := attendanceDb.NewAttendanceRepository(dbProvider)
 
 	var rdb *redis.Redis
 	redisURL := utils.GetEnv("REDIS_URL", "")
@@ -131,6 +135,7 @@ func main() {
 	userService := userService.NewUserService(userDB, authRepo, rdb, zapLog)
 	projectService := projectService.NewProjectService(projectDB, zapLog)
 	authService := authService.NewAuthService(authRepo, zapLog)
+	attendanceService := attendanceService.NewAttendanceService(attendanceDB, zapLog)
 
 	// handlers
 	guestHandler := guestHandler.NewGuestHandler(guestService)
@@ -138,8 +143,9 @@ func main() {
 	projectHandler := projectHandler.NewProjectHandler(projectService)
 	userHandler := userHandler.NewUserHandler(userService)
 	authHandler := authHandler.NewAuthHandler(authService, userDB, rdb, zapLog)
+	attendanceHandler := attendanceHandler.NewAttendanceHandler(attendanceService)
 
-	r := router.NewRouter(guestHandler, eventHandler, projectHandler, userHandler, authHandler, rdb)
+	r := router.NewRouter(guestHandler, eventHandler, projectHandler, userHandler, authHandler, attendanceHandler, rdb)
 
 	port := os.Getenv("PORT")
 	if port == "" {

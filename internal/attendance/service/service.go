@@ -26,6 +26,7 @@ type AttendanceService interface {
 	AddAttendanceBulk(ctx context.Context, req *attendanceModel.CreateAttendanceRequest, currentUser middleware.AuthClaims) (*attendanceModel.CreateAttendanceResponse, error)
 	DeleteAttendanceByID(ctx context.Context, req *attendanceModel.DeleteAttendanceByIDRequest, currentUser middleware.AuthClaims) (*attendanceModel.DeleteAttendanceByIDResponse, error)
 	CheckInOutAttendance(ctx context.Context, req *attendanceModel.CheckInOutAttendanceRequest, currentUser middleware.AuthClaims) (*attendanceModel.CheckInOutAttendanceResponse, error)
+	CreateAttendance(ctx context.Context, req *attendanceModel.CreateAttendanceRequest, currentUser middleware.AuthClaims) error
 }
 
 type attendanceService struct {
@@ -400,4 +401,33 @@ func (s *attendanceService) CheckInOutAttendance(ctx context.Context, req *atten
 	}
 
 	return response, nil
+}
+
+func (s *attendanceService) CreateAttendance(ctx context.Context, req *attendanceModel.CreateAttendanceRequest, currentUser middleware.AuthClaims) error {
+	funcName := "CreateAttendance"
+	span, ctx := apm.StartSpan(ctx, funcName, constant.SpanTypeProccess)
+	span.Action = constant.SpanActionExecute
+	defer span.End()
+
+	ctx, loggerZap := s.logger.StartLogger(ctx, funcName, req)
+
+	switch currentUser.UserType {
+	case constant.UserTypeSystemAdmin:
+		// system admin can access all projects
+	case constant.UserTypeProjectUser:
+		if req.ProjectID != fmt.Sprintf("%d", currentUser.ProjectID) || req.EventId != fmt.Sprintf("%d", currentUser.EventID) {
+			loggerZap.Error("err GetMeFromMD unauthorized user", nil)
+			return status.Error(codes.PermissionDenied, "Permission Denied")
+		}
+	default:
+		loggerZap.Error("err GetMeFromMD unauthorized user type", nil)
+		return status.Error(codes.PermissionDenied, "Permission Denied")
+	}
+	loggerZap.Info("Start CreateAttendance with req : ", req)
+
+	if err := s.dbProvider.CreateAttendance(ctx, req, currentUser); err != nil {
+		s.logger.Error("err CreateAttendance ", err)
+		return status.Error(codes.Internal, "Internal Server Error")
+	}
+	return nil
 }

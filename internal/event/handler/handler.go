@@ -37,10 +37,10 @@ func NewEventHandler(svc eventService.EventService) *EventHandler {
 func (h *EventHandler) ListEvent(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	result := &eventModel.ListEventResponse{
-		Error: false,
-		Code:  http.StatusOK,
-	}
+	// result := &eventModel.ListEventResponse{
+	// 	Error: false,
+	// 	Code:  http.StatusOK,
+	// }
 
 	if payloadMap, okp := middleware.GetAuthPayload(ctx); okp {
 		ctx = context.WithValue(ctx, middleware.ContextKeyAuthPayload, payloadMap)
@@ -73,11 +73,8 @@ func (h *EventHandler) ListEvent(w http.ResponseWriter, r *http.Request) {
 		utils.HandleGrpcError(w, err)
 		return
 	}
-	result.Error = false
-	result.Code = http.StatusOK
-	w.Header().Add("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(guests)
+
+	utils.WriteJSONSuccess(w, guests)
 }
 
 // DetailEvent godoc
@@ -94,10 +91,10 @@ func (h *EventHandler) ListEvent(w http.ResponseWriter, r *http.Request) {
 func (h *EventHandler) DetailEvent(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	result := &eventModel.DetailEventResponse{
-		Error: false,
-		Code:  http.StatusOK,
-	}
+	// result := &eventModel.DetailEventResponse{
+	// 	Error: false,
+	// 	Code:  http.StatusOK,
+	// }
 
 	if payloadMap, okp := middleware.GetAuthPayload(ctx); okp {
 		ctx = context.WithValue(ctx, middleware.ContextKeyAuthPayload, payloadMap)
@@ -126,11 +123,8 @@ func (h *EventHandler) DetailEvent(w http.ResponseWriter, r *http.Request) {
 		utils.HandleGrpcError(w, err)
 		return
 	}
-	result.Error = false
-	result.Code = http.StatusOK
-	w.Header().Add("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(guests)
+
+	utils.WriteJSONSuccess(w, guests)
 }
 
 // AddEvent godoc
@@ -182,14 +176,9 @@ func (h *EventHandler) AddEvent(w http.ResponseWriter, r *http.Request) {
 	if err := h.svc.AddEvent(ctx, req); err != nil {
 		utils.HandleGrpcError(w, err)
 		return
-
 	}
 
-	result.Error = false
-	result.Code = http.StatusOK
-	w.Header().Add("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(result)
+	utils.WriteJSONSuccess(w, result)
 }
 
 // UpdateEvent godoc
@@ -243,14 +232,9 @@ func (h *EventHandler) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 	if err := h.svc.UpdateEvent(ctx, req); err != nil {
 		utils.HandleGrpcError(w, err)
 		return
-
 	}
 
-	result.Error = false
-	result.Code = http.StatusOK
-	w.Header().Add("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(result)
+	utils.WriteJSONSuccess(w, result)
 }
 
 // DeleteEvent godoc
@@ -289,9 +273,6 @@ func (h *EventHandler) DeleteEvent(w http.ResponseWriter, r *http.Request) {
 		utils.HandleGrpcError(w, err)
 		return
 	}
-	result.Error = false
-	result.Code = http.StatusOK
-	w.Header().Add("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(result)
+
+	utils.WriteJSONSuccess(w, result)
 }
