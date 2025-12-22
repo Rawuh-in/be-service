@@ -23,10 +23,9 @@ import (
 type AttendanceService interface {
 	ListAttendance(ctx context.Context, req *attendanceModel.ListAttendanceRequest) (*attendanceModel.ListAttendanceResponse, error)
 	GetAttendanceByID(ctx context.Context, req *attendanceModel.GetAttendanceByIDRequest) (*attendanceModel.Attendance, error)
-	AddAttendanceBulk(ctx context.Context, req *attendanceModel.CreateAttendanceRequest, currentUser middleware.AuthClaims) (*attendanceModel.CreateAttendanceResponse, error)
-	DeleteAttendanceByID(ctx context.Context, req *attendanceModel.DeleteAttendanceByIDRequest, currentUser middleware.AuthClaims) (*attendanceModel.DeleteAttendanceByIDResponse, error)
-	CheckInOutAttendance(ctx context.Context, req *attendanceModel.CheckInOutAttendanceRequest, currentUser middleware.AuthClaims) (*attendanceModel.CheckInOutAttendanceResponse, error)
-	CreateAttendance(ctx context.Context, req *attendanceModel.CreateAttendanceRequest, currentUser middleware.AuthClaims) error
+	AddAttendanceBulk(ctx context.Context, req *attendanceModel.CreateAttendanceRequest) (*attendanceModel.CreateAttendanceResponse, error)
+	DeleteAttendanceByID(ctx context.Context, req *attendanceModel.DeleteAttendanceByIDRequest) (*attendanceModel.DeleteAttendanceByIDResponse, error)
+	CheckInOutAttendance(ctx context.Context, req *attendanceModel.BulkCheckInOutAttendanceRequest) (*attendanceModel.BulkCheckInOutAttendanceResponse, error)
 }
 
 type attendanceService struct {
@@ -54,17 +53,8 @@ func (s *attendanceService) ListAttendance(ctx context.Context, req *attendanceM
 		return nil, status.Error(codes.Unauthenticated, "Unauthenticated")
 	}
 
-	switch currentUser.UserType {
-	case constant.UserTypeSystemAdmin:
-		// system admin can access all projects
-	case constant.UserTypeProjectUser:
-		if req.ProjectID != fmt.Sprintf("%d", currentUser.ProjectID) || req.EventId != fmt.Sprintf("%d", currentUser.EventID) {
-			loggerZap.Error("err GetMeFromMD unauthorized user", nil)
-			return nil, status.Error(codes.PermissionDenied, "Permission Denied")
-		}
-	default:
-		loggerZap.Error("err GetMeFromMD unauthorized user type", nil)
-		return nil, status.Error(codes.PermissionDenied, "Permission Denied")
+	if err := utils.ValidateUserAuthorization(currentUser, req.ProjectID, req.EventId, loggerZap); err != nil {
+		return nil, err
 	}
 
 	loggerZap.Info("Start ListProducts with req : ", req)
@@ -148,17 +138,8 @@ func (s *attendanceService) GetAttendanceByID(ctx context.Context, req *attendan
 		return nil, status.Error(codes.Unauthenticated, "Unauthenticated")
 	}
 
-	switch currentUser.UserType {
-	case constant.UserTypeSystemAdmin:
-		// system admin can access all projects
-	case constant.UserTypeProjectUser:
-		if req.ProjectID != fmt.Sprintf("%d", currentUser.ProjectID) || req.EventId != fmt.Sprintf("%d", currentUser.EventID) {
-			loggerZap.Error("err GetMeFromMD unauthorized user", nil)
-			return nil, status.Error(codes.PermissionDenied, "Permission Denied")
-		}
-	default:
-		loggerZap.Error("err GetMeFromMD unauthorized user type", nil)
-		return nil, status.Error(codes.PermissionDenied, "Permission Denied")
+	if err := utils.ValidateUserAuthorization(currentUser, req.ProjectID, req.EventId, loggerZap); err != nil {
+		return nil, err
 	}
 
 	loggerZap.Info("Start GetAttendanceByID with req : ", req)
@@ -172,25 +153,21 @@ func (s *attendanceService) GetAttendanceByID(ctx context.Context, req *attendan
 	return attendance, nil
 }
 
-func (s *attendanceService) AddAttendanceBulk(ctx context.Context, req *attendanceModel.CreateAttendanceRequest, currentUser middleware.AuthClaims) (*attendanceModel.CreateAttendanceResponse, error) {
+func (s *attendanceService) AddAttendanceBulk(ctx context.Context, req *attendanceModel.CreateAttendanceRequest) (*attendanceModel.CreateAttendanceResponse, error) {
 	funcName := "AddAttendanceBulk"
 	span, ctx := apm.StartSpan(ctx, funcName, constant.SpanTypeProccess)
 	span.Action = constant.SpanActionExecute
 	defer span.End()
 
 	ctx, loggerZap := s.logger.StartLogger(ctx, funcName, req)
+	currentUser, ok := middleware.GetAuthClaimsFromContext(ctx)
+	if !ok {
+		loggerZap.Error("err GetMeFromMD no auth claims", nil)
+		return nil, status.Error(codes.Unauthenticated, "Unauthenticated")
+	}
 
-	switch currentUser.UserType {
-	case constant.UserTypeSystemAdmin:
-		// system admin can access all projects
-	case constant.UserTypeProjectUser:
-		if req.ProjectID != fmt.Sprintf("%d", currentUser.ProjectID) || req.EventId != fmt.Sprintf("%d", currentUser.EventID) {
-			loggerZap.Error("err GetMeFromMD unauthorized user", nil)
-			return nil, status.Error(codes.PermissionDenied, "Permission Denied")
-		}
-	default:
-		loggerZap.Error("err GetMeFromMD unauthorized user type", nil)
-		return nil, status.Error(codes.PermissionDenied, "Permission Denied")
+	if err := utils.ValidateUserAuthorization(currentUser, req.ProjectID, req.EventId, loggerZap); err != nil {
+		return nil, err
 	}
 
 	loggerZap.Info("Start AddAttendanceBulk with req : ", req)
@@ -247,7 +224,7 @@ func (s *attendanceService) AddAttendanceBulk(ctx context.Context, req *attendan
 				Error:   true,
 				Code:    http.StatusInternalServerError,
 				Message: "Failed to create attendance for valid guests",
-				Results: results,
+				Data:    results,
 			}, status.Error(codes.Internal, "Internal Server Error")
 		}
 	}
@@ -256,31 +233,27 @@ func (s *attendanceService) AddAttendanceBulk(ctx context.Context, req *attendan
 		Error:   false,
 		Code:    http.StatusOK,
 		Message: "Success",
-		Results: results,
+		Data:    results,
 	}
 
 	return response, nil
 }
 
-func (s *attendanceService) DeleteAttendanceByID(ctx context.Context, req *attendanceModel.DeleteAttendanceByIDRequest, currentUser middleware.AuthClaims) (*attendanceModel.DeleteAttendanceByIDResponse, error) {
+func (s *attendanceService) DeleteAttendanceByID(ctx context.Context, req *attendanceModel.DeleteAttendanceByIDRequest) (*attendanceModel.DeleteAttendanceByIDResponse, error) {
 	funcName := "DeleteAttendanceByID"
 	span, ctx := apm.StartSpan(ctx, funcName, constant.SpanTypeProccess)
 	span.Action = constant.SpanActionExecute
 	defer span.End()
 
 	ctx, loggerZap := s.logger.StartLogger(ctx, funcName, req)
+	currentUser, ok := middleware.GetAuthClaimsFromContext(ctx)
+	if !ok {
+		loggerZap.Error("err GetMeFromMD no auth claims", nil)
+		return nil, status.Error(codes.Unauthenticated, "Unauthenticated")
+	}
 
-	switch currentUser.UserType {
-	case constant.UserTypeSystemAdmin:
-		// system admin can access all projects
-	case constant.UserTypeProjectUser:
-		if req.ProjectID != fmt.Sprintf("%d", currentUser.ProjectID) || req.EventID != fmt.Sprintf("%d", currentUser.EventID) {
-			loggerZap.Error("err GetMeFromMD unauthorized user", nil)
-			return nil, status.Error(codes.PermissionDenied, "Permission Denied")
-		}
-	default:
-		loggerZap.Error("err GetMeFromMD unauthorized user type", nil)
-		return nil, status.Error(codes.PermissionDenied, "Permission Denied")
+	if err := utils.ValidateUserAuthorization(currentUser, req.ProjectID, req.EventID, loggerZap); err != nil {
+		return nil, err
 	}
 
 	loggerZap.Info("Start DeleteAttendanceByID with req : ", req)
@@ -366,68 +339,94 @@ func (s *attendanceService) DeleteAttendanceByID(ctx context.Context, req *atten
 	return response, nil
 }
 
-func (s *attendanceService) CheckInOutAttendance(ctx context.Context, req *attendanceModel.CheckInOutAttendanceRequest, currentUser middleware.AuthClaims) (*attendanceModel.CheckInOutAttendanceResponse, error) {
+func (s *attendanceService) CheckInOutAttendance(ctx context.Context, req *attendanceModel.BulkCheckInOutAttendanceRequest) (*attendanceModel.BulkCheckInOutAttendanceResponse, error) {
 	funcName := "CheckInOutAttendance"
 	span, ctx := apm.StartSpan(ctx, funcName, constant.SpanTypeProccess)
 	span.Action = constant.SpanActionExecute
 	defer span.End()
 
 	ctx, loggerZap := s.logger.StartLogger(ctx, funcName, req)
-
-	switch currentUser.UserType {
-	case constant.UserTypeSystemAdmin:
-		// system admin can access all projects
-	case constant.UserTypeProjectUser:
-		if req.ProjectID != fmt.Sprintf("%d", currentUser.ProjectID) || req.EventID != fmt.Sprintf("%d", currentUser.EventID) {
-			loggerZap.Error("err GetMeFromMD unauthorized user", nil)
-			return nil, status.Error(codes.PermissionDenied, "Permission Denied")
-		}
-	default:
-		loggerZap.Error("err GetMeFromMD unauthorized user type", nil)
-		return nil, status.Error(codes.PermissionDenied, "Permission Denied")
+	currentUser, ok := middleware.GetAuthClaimsFromContext(ctx)
+	if !ok {
+		loggerZap.Error("err GetMeFromMD no auth claims", nil)
+		return nil, status.Error(codes.Unauthenticated, "Unauthenticated")
 	}
+
+	if err := utils.ValidateUserAuthorization(currentUser, req.ProjectID, req.EventID, loggerZap); err != nil {
+		return nil, err
+	}
+
 	loggerZap.Info("Start CheckInOutAttendance with req : ", req)
 
-	checkInOutErr := s.dbProvider.CheckInOutAttendance(ctx, req, currentUser)
-	if checkInOutErr != nil {
-		s.logger.Error("err CheckInOutAttendance ", checkInOutErr)
+	requestedAttendanceMap := make(map[string]bool)
+	for _, attendanceID := range req.AttendanceIDs {
+		requestedAttendanceMap[attendanceID] = false
+	}
+
+	validAttendanceList, listAttendanceErr := s.dbProvider.GetListAttendanceByID(ctx, currentUser, req.AttendanceIDs)
+	if listAttendanceErr != nil {
+		s.logger.Error("err GetListAttendanceByID ", listAttendanceErr)
 		return nil, status.Error(codes.Internal, "Internal Server Error")
 	}
 
-	response := &attendanceModel.CheckInOutAttendanceResponse{
+	for _, attendanceID := range validAttendanceList {
+		if _, exists := requestedAttendanceMap[attendanceID]; exists {
+			requestedAttendanceMap[attendanceID] = true
+		}
+	}
+
+	validAttendanceIDs := make([]string, 0)
+	results := make([]*attendanceModel.CheckInOutResult, 0)
+
+	for attendanceID, isValid := range requestedAttendanceMap {
+		if isValid {
+			validAttendanceIDs = append(validAttendanceIDs, attendanceID)
+			results = append(results, &attendanceModel.CheckInOutResult{
+				AttendanceID: attendanceID,
+				Error:        false,
+				Message:      "Check-in/out successful",
+			})
+		} else {
+			results = append(results, &attendanceModel.CheckInOutResult{
+				AttendanceID: attendanceID,
+				Error:        true,
+				Message:      "Unauthorized: Attendance ID not found in this project and event",
+			})
+		}
+	}
+
+	if len(validAttendanceIDs) > 0 {
+		checkInOutReq := &attendanceModel.BulkCheckInOutAttendanceRequest{
+			EventID:       req.EventID,
+			ProjectID:     req.ProjectID,
+			AttendanceIDs: validAttendanceIDs,
+		}
+
+		checkInOutErr := s.dbProvider.CheckInOutAttendance(ctx, checkInOutReq, currentUser)
+		if checkInOutErr != nil {
+			s.logger.Error("err CheckInOutAttendance ", checkInOutErr)
+
+			for _, result := range results {
+				if !result.Error {
+					result.Error = true
+					result.Message = "Failed to check-in/out: Internal Server Error"
+				}
+			}
+			return &attendanceModel.BulkCheckInOutAttendanceResponse{
+				Error:   true,
+				Code:    http.StatusInternalServerError,
+				Message: "Failed to check-in/out for valid attendances",
+				Data:    results,
+			}, nil
+		}
+	}
+
+	response := &attendanceModel.BulkCheckInOutAttendanceResponse{
 		Error:   false,
 		Code:    http.StatusOK,
 		Message: "Success",
+		Data:    results,
 	}
 
 	return response, nil
-}
-
-func (s *attendanceService) CreateAttendance(ctx context.Context, req *attendanceModel.CreateAttendanceRequest, currentUser middleware.AuthClaims) error {
-	funcName := "CreateAttendance"
-	span, ctx := apm.StartSpan(ctx, funcName, constant.SpanTypeProccess)
-	span.Action = constant.SpanActionExecute
-	defer span.End()
-
-	ctx, loggerZap := s.logger.StartLogger(ctx, funcName, req)
-
-	switch currentUser.UserType {
-	case constant.UserTypeSystemAdmin:
-		// system admin can access all projects
-	case constant.UserTypeProjectUser:
-		if req.ProjectID != fmt.Sprintf("%d", currentUser.ProjectID) || req.EventId != fmt.Sprintf("%d", currentUser.EventID) {
-			loggerZap.Error("err GetMeFromMD unauthorized user", nil)
-			return status.Error(codes.PermissionDenied, "Permission Denied")
-		}
-	default:
-		loggerZap.Error("err GetMeFromMD unauthorized user type", nil)
-		return status.Error(codes.PermissionDenied, "Permission Denied")
-	}
-	loggerZap.Info("Start CreateAttendance with req : ", req)
-
-	if err := s.dbProvider.CreateAttendance(ctx, req, currentUser); err != nil {
-		s.logger.Error("err CreateAttendance ", err)
-		return status.Error(codes.Internal, "Internal Server Error")
-	}
-	return nil
 }

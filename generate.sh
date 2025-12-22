@@ -19,7 +19,7 @@ SWAG_CMD="${SWAG_CMD:-go run github.com/swaggo/swag/cmd/swag}"
 # warnings). Override SWAG_FLAGS if you need different behavior.
 SWAG_FLAGS="${SWAG_FLAGS:-init -g main.go -o ../../docs \
 	--parseInternal --parseDependency --parseDependencyLevel 3 --parseFuncBody \
-	--dir .,../../internal/event/handler,../../internal/guest/handler,../../internal/project/handler,../../internal/user/handler,../../internal/auth/handler}"
+	--dir .,../../internal/event/handler,../../internal/guest/handler,../../internal/project/handler,../../internal/user/handler,../../internal/auth/handler,../../internal/attendance/handler}"
 
 echo "Generating swagger docs..."
 

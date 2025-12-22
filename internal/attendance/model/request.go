@@ -36,7 +36,7 @@ type CreateAttendanceResponse struct {
 	Error   bool                     `json:"error"`
 	Code    int32                    `json:"code"`
 	Message string                   `json:"message"`
-	Results []*GuestAttendanceResult `json:"results,omitempty"`
+	Data    []*GuestAttendanceResult `json:"results,omitempty"`
 }
 
 type UpdateAttendanceRequest struct {
@@ -87,15 +87,23 @@ type DeleteAttendanceByIDResponse struct {
 	Data    []*AttendanceDeleteResult `json:"data,omitempty"`
 }
 
-type CheckInOutAttendanceRequest struct {
+type BulkCheckInOutAttendanceRequest struct {
 	ProjectID     string
 	AttendanceIDs []string `json:"attendance_ids"`
 	EventID       string
 	Type          string
 }
 
-type CheckInOutAttendanceResponse struct {
+type BulkCheckInOutAttendanceResponse struct {
 	Error   bool
 	Code    int32
 	Message string
+	Data    []*CheckInOutResult
+}
+
+type CheckInOutResult struct {
+	AttendanceID string `json:"attendance_id"`
+	Error        bool   `json:"error"`
+	Code         int32  `json:"code"`
+	Message      string `json:"message"`
 }

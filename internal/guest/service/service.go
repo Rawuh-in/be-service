@@ -60,17 +60,8 @@ func (s *guestService) AddGuest(ctx context.Context, req *guestModel.CreateGuest
 		return status.Error(codes.Unauthenticated, "Unauthenticated")
 	}
 
-	switch currentUser.UserType {
-	case constant.UserTypeSystemAdmin:
-		// system admin can access all projects
-	case constant.UserTypeProjectUser:
-		if req.ProjectID != fmt.Sprintf("%d", currentUser.ProjectID) || req.EventId != fmt.Sprintf("%d", currentUser.EventID) {
-			loggerZap.Error("err GetMeFromMD unauthorized user", nil)
-			return status.Error(codes.PermissionDenied, "Permission Denied")
-		}
-	default:
-		loggerZap.Error("err GetMeFromMD unauthorized user type", nil)
-		return status.Error(codes.PermissionDenied, "Permission Denied")
+	if err := utils.ValidateUserAuthorization(currentUser, req.ProjectID, req.EventId, loggerZap); err != nil {
+		return err
 	}
 
 	remarkLength, _ := strconv.Atoi(utils.GetEnv("GUEST_REMARK_LENGTH", "500"))
@@ -151,17 +142,8 @@ func (s *guestService) UpdateGuestByID(ctx context.Context, req *guestModel.Upda
 		return status.Error(codes.Unauthenticated, "Unauthenticated")
 	}
 
-	switch currentUser.UserType {
-	case constant.UserTypeSystemAdmin:
-		// system admin can access all projects
-	case constant.UserTypeProjectUser:
-		if req.ProjectID != fmt.Sprintf("%d", currentUser.ProjectID) || req.EventId != fmt.Sprintf("%d", currentUser.EventID) {
-			loggerZap.Error("err GetMeFromMD unauthorized user", nil)
-			return status.Error(codes.PermissionDenied, "Permission Denied")
-		}
-	default:
-		loggerZap.Error("err GetMeFromMD unauthorized user type", nil)
-		return status.Error(codes.PermissionDenied, "Permission Denied")
+	if err := utils.ValidateUserAuthorization(currentUser, req.ProjectID, req.EventId, loggerZap); err != nil {
+		return err
 	}
 
 	remarkLength, _ := strconv.Atoi(utils.GetEnv("GUEST_REMARK_LENGTH", "500"))
@@ -246,17 +228,8 @@ func (s *guestService) ListGuests(ctx context.Context, req *guestModel.ListGuest
 		return nil, status.Error(codes.Unauthenticated, "Unauthenticated")
 	}
 
-	switch currentUser.UserType {
-	case constant.UserTypeSystemAdmin:
-		// system admin can access all projects
-	case constant.UserTypeProjectUser:
-		if req.ProjectID != fmt.Sprintf("%d", currentUser.ProjectID) || req.EventId != fmt.Sprintf("%d", currentUser.EventID) {
-			loggerZap.Error("err GetMeFromMD unauthorized user", nil)
-			return nil, status.Error(codes.PermissionDenied, "Permission Denied")
-		}
-	default:
-		loggerZap.Error("err GetMeFromMD unauthorized user type", nil)
-		return nil, status.Error(codes.PermissionDenied, "Permission Denied")
+	if err := utils.ValidateUserAuthorization(currentUser, req.ProjectID, req.EventId, loggerZap); err != nil {
+		return nil, err
 	}
 
 	loggerZap.Info("Start ListProducts with req : ", req)
@@ -345,17 +318,8 @@ func (s *guestService) GetGuestByID(ctx context.Context, req *guestModel.GetGues
 		return nil, status.Errorf(codes.InvalidArgument, "Invalid Event Id")
 	}
 
-	switch currentUser.UserType {
-	case constant.UserTypeSystemAdmin:
-		// system admin can access all projects
-	case constant.UserTypeProjectUser:
-		if req.ProjectID != fmt.Sprintf("%d", currentUser.ProjectID) || req.EventId != fmt.Sprintf("%d", currentUser.EventID) {
-			loggerZap.Error("err GetMeFromMD unauthorized user", nil)
-			return nil, status.Error(codes.PermissionDenied, "Permission Denied")
-		}
-	default:
-		loggerZap.Error("err GetMeFromMD unauthorized user type", nil)
-		return nil, status.Error(codes.PermissionDenied, "Permission Denied")
+	if err := utils.ValidateUserAuthorization(currentUser, req.ProjectID, req.EventId, loggerZap); err != nil {
+		return nil, err
 	}
 
 	loggerZap.Info("Start GetGuestByID with req : ", req)
@@ -402,17 +366,8 @@ func (s *guestService) DeleteGuestByID(ctx context.Context, req *guestModel.Dele
 		return status.Errorf(codes.InvalidArgument, "Invalid Event Id")
 	}
 
-	switch currentUser.UserType {
-	case constant.UserTypeSystemAdmin:
-		// system admin can access all projects
-	case constant.UserTypeProjectUser:
-		if req.ProjectID != fmt.Sprintf("%d", currentUser.ProjectID) || req.EventId != fmt.Sprintf("%d", currentUser.EventID) {
-			loggerZap.Error("err GetMeFromMD unauthorized user", nil)
-			return status.Error(codes.PermissionDenied, "Permission Denied")
-		}
-	default:
-		loggerZap.Error("err GetMeFromMD unauthorized user type", nil)
-		return status.Error(codes.PermissionDenied, "Permission Denied")
+	if err := utils.ValidateUserAuthorization(currentUser, req.ProjectID, req.EventId, loggerZap); err != nil {
+		return err
 	}
 
 	loggerZap.Info("Start DeleteGuestByID with req : ", req)

@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"rawuh-service/internal/shared/constant"
 	"regexp"
 	"strings"
 
@@ -215,6 +216,18 @@ func WriteJSONSuccess(w http.ResponseWriter, data interface{}) {
 	json.NewEncoder(w).Encode(data)
 }
 
+// WriteJSONError writes an error JSON response with the specified status code and message
+func WriteJSONError(w http.ResponseWriter, code int, message string) {
+	resp := APIErrorResponse{
+		Error:   true,
+		Code:    code,
+		Message: message,
+	}
+	w.Header().Add("content-type", "application/json")
+	w.WriteHeader(code)
+	json.NewEncoder(w).Encode(resp)
+}
+
 var reUnsafe = regexp.MustCompile(`[;'"]|(?i)script|(?i)select|(?i)insert|(?i)delete|(?i)drop|(?i)update|(?i)union`)
 
 func SanitizeJSON(obj map[string]interface{}) {
@@ -258,5 +271,35 @@ func SanitizeJSON(obj map[string]interface{}) {
 				}
 			}
 		}
+	}
+}
+
+// AuthUser interface to avoid import cycle with middleware package
+type AuthUser interface {
+	GetUserType() string
+	GetProjectID() int64
+	GetEventID() int64
+}
+
+// ErrorLogger interface for logging errors
+type ErrorLogger interface {
+	Error(message string, err error)
+}
+
+// ValidateUserAuthorization checks if the current user has permission to access the specified project and event
+func ValidateUserAuthorization(currentUser AuthUser, projectID, eventID string, logger ErrorLogger) error {
+	switch currentUser.GetUserType() {
+	case constant.UserTypeSystemAdmin:
+		// system admin can access all projects
+		return nil
+	case constant.UserTypeProjectUser:
+		if projectID != fmt.Sprintf("%d", currentUser.GetProjectID()) || eventID != fmt.Sprintf("%d", currentUser.GetEventID()) {
+			logger.Error("err unauthorized user", nil)
+			return status.Error(codes.PermissionDenied, "Permission Denied")
+		}
+		return nil
+	default:
+		logger.Error("err unauthorized user type", nil)
+		return status.Error(codes.PermissionDenied, "Permission Denied")
 	}
 }

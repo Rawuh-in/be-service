@@ -103,20 +103,15 @@ func (h *ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 		ctx = context.WithValue(ctx, middleware.ContextKeyAuthPayload, payloadMap)
 	}
 
-	var p projectModel.CreateProjectRequest
-	if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
-		result.Error = true
-		result.Code = http.StatusInternalServerError
-		result.Message = "Invalid Argument"
-		w.Header().Add("content-type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(result)
+	var projectReq projectModel.CreateProjectRequest
+	if err := json.NewDecoder(r.Body).Decode(&projectReq); err != nil {
+		utils.WriteJSONError(w, http.StatusBadRequest, "Invalid Argument")
 		return
 	}
 
 	req := &projectModel.CreateProjectRequest{
-		ProjectName: p.ProjectName,
-		UserID:      p.UserID,
+		ProjectName: projectReq.ProjectName,
+		UserID:      projectReq.UserID,
 	}
 
 	err := h.svc.CreateProject(ctx, req)
@@ -154,21 +149,16 @@ func (h *ProjectHandler) UpdateProject(w http.ResponseWriter, r *http.Request) {
 		ctx = context.WithValue(ctx, middleware.ContextKeyAuthPayload, payloadMap)
 	}
 
-	var p projectModel.UpdateProjectRequest
-	if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
-		result.Error = true
-		result.Code = http.StatusInternalServerError
-		result.Message = "Invalid Argument"
-		w.Header().Add("content-type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(result)
+	var projectReq projectModel.UpdateProjectRequest
+	if err := json.NewDecoder(r.Body).Decode(&projectReq); err != nil {
+		utils.WriteJSONError(w, http.StatusBadRequest, "Invalid Argument")
 		return
 	}
 
 	req := &projectModel.UpdateProjectRequest{
 		ProjectID:   mux.Vars(r)["project_id"],
-		ProjectName: p.ProjectName,
-		UserID:      p.UserID,
+		ProjectName: projectReq.ProjectName,
+		UserID:      projectReq.UserID,
 	}
 
 	err := h.svc.UpdateProject(ctx, req)
@@ -204,14 +194,9 @@ func (h *ProjectHandler) DeleteProject(w http.ResponseWriter, r *http.Request) {
 		ctx = context.WithValue(ctx, middleware.ContextKeyAuthPayload, payloadMap)
 	}
 
-	var p projectModel.DeleteProjectRequest
-	if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
-		result.Error = true
-		result.Code = http.StatusInternalServerError
-		result.Message = "Invalid Argument"
-		w.Header().Add("content-type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(result)
+	var projectReq projectModel.DeleteProjectRequest
+	if err := json.NewDecoder(r.Body).Decode(&projectReq); err != nil {
+		utils.WriteJSONError(w, http.StatusBadRequest, "Invalid Argument")
 		return
 	}
 

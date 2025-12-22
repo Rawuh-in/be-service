@@ -151,25 +151,20 @@ func (h *EventHandler) AddEvent(w http.ResponseWriter, r *http.Request) {
 		ctx = context.WithValue(ctx, middleware.ContextKeyAuthPayload, payloadMap)
 	}
 
-	var p eventModel.CreateEventRequest
-	if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
-		result.Error = true
-		result.Code = http.StatusInternalServerError
-		result.Message = "Invalid Argument"
-		w.Header().Add("content-type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(result)
+	var eventReq eventModel.CreateEventRequest
+	if err := json.NewDecoder(r.Body).Decode(&eventReq); err != nil {
+		utils.WriteJSONError(w, http.StatusBadRequest, "Invalid Argument")
 		return
 	}
 
 	req := &eventModel.CreateEventRequest{
-		EventName:    p.EventName,
-		Description:  p.Description,
-		EventOptions: p.EventOptions,
-		GuestOptions: p.GuestOptions,
-		StartDate:    p.StartDate,
-		EndDate:      p.EndDate,
-		UserID:       p.UserID,
+		EventName:    eventReq.EventName,
+		Description:  eventReq.Description,
+		EventOptions: eventReq.EventOptions,
+		GuestOptions: eventReq.GuestOptions,
+		StartDate:    eventReq.StartDate,
+		EndDate:      eventReq.EndDate,
+		UserID:       eventReq.UserID,
 		ProjectID:    mux.Vars(r)["project_id"],
 	}
 
@@ -206,27 +201,22 @@ func (h *EventHandler) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 		ctx = context.WithValue(ctx, middleware.ContextKeyAuthPayload, payloadMap)
 	}
 
-	var p eventModel.UpdateEventRequest
-	if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
-		result.Error = true
-		result.Code = http.StatusInternalServerError
-		result.Message = "Invalid Argument"
-		w.Header().Add("content-type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(result)
+	var eventReq eventModel.UpdateEventRequest
+	if err := json.NewDecoder(r.Body).Decode(&eventReq); err != nil {
+		utils.WriteJSONError(w, http.StatusBadRequest, "Invalid Argument")
 		return
 	}
 
 	req := &eventModel.UpdateEventRequest{
 		ProjectID:    mux.Vars(r)["project_id"],
 		EventID:      mux.Vars(r)["event_id"],
-		EventName:    p.EventName,
-		Description:  p.Description,
-		EventOptions: p.EventOptions,
-		GuestOptions: p.GuestOptions,
-		StartDate:    p.StartDate,
-		EndDate:      p.EndDate,
-		UserID:       p.UserID,
+		EventName:    eventReq.EventName,
+		Description:  eventReq.Description,
+		EventOptions: eventReq.EventOptions,
+		GuestOptions: eventReq.GuestOptions,
+		StartDate:    eventReq.StartDate,
+		EndDate:      eventReq.EndDate,
+		UserID:       eventReq.UserID,
 	}
 
 	if err := h.svc.UpdateEvent(ctx, req); err != nil {

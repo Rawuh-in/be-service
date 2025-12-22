@@ -49,12 +49,7 @@ func (h *UserHandler) AddUser(w http.ResponseWriter, r *http.Request) {
 
 	var p userModel.CreateUserRequest
 	if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
-		result.Error = true
-		result.Code = http.StatusInternalServerError
-		result.Message = "Invalid Argument"
-		w.Header().Add("content-type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(result)
+		utils.WriteJSONError(w, http.StatusBadRequest, "Invalid Argument")
 		return
 	}
 
@@ -103,12 +98,7 @@ func (h *UserHandler) UpdateUserByID(w http.ResponseWriter, r *http.Request) {
 
 	var p userModel.UpdateUserRequest
 	if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
-		result.Error = true
-		result.Code = http.StatusInternalServerError
-		result.Message = "Invalid Argument"
-		w.Header().Add("content-type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(result)
+		utils.WriteJSONError(w, http.StatusBadRequest, "Invalid Argument")
 		return
 	}
 
@@ -145,11 +135,11 @@ func (h *UserHandler) UpdateUserByID(w http.ResponseWriter, r *http.Request) {
 func (h *UserHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	result := &userModel.ListUserResponse{
-		Error:   false,
-		Code:    http.StatusOK,
-		Message: "Success",
-	}
+	// result := &userModel.ListUserResponse{
+	// 	Error:   false,
+	// 	Code:    http.StatusOK,
+	// 	Message: "Success",
+	// }
 
 	if payloadMap, okp := middleware.GetAuthPayload(ctx); okp {
 		ctx = context.WithValue(ctx, middleware.ContextKeyAuthPayload, payloadMap)
@@ -202,11 +192,11 @@ func (h *UserHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
 func (h *UserHandler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	result := &userModel.GetUserByIDResponse{
-		Error:   false,
-		Code:    http.StatusOK,
-		Message: "Success",
-	}
+	// result := &userModel.GetUserByIDResponse{
+	// 	Error:   false,
+	// 	Code:    http.StatusOK,
+	// 	Message: "Success",
+	// }
 
 	if payloadMap, okp := middleware.GetAuthPayload(ctx); okp {
 		ctx = context.WithValue(ctx, middleware.ContextKeyAuthPayload, payloadMap)

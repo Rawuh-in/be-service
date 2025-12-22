@@ -41,7 +41,7 @@ func (p *AttendanceRepository) ListAttendance(ctx context.Context, req *attendan
 		db.Sort(sort),
 	)
 
-	if err := query.Debug().First(&data).Error; err != nil {
+	if err := query.Debug().Find(&data).Error; err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, err
 		}
@@ -134,7 +134,7 @@ func (p *AttendanceRepository) UpdateAttendance(ctx context.Context, req *attend
 	return nil
 }
 
-func (p *AttendanceRepository) CheckInOutAttendance(ctx context.Context, req *attendanceModel.CheckInOutAttendanceRequest, currentUser middleware.AuthClaims) error {
+func (p *AttendanceRepository) CheckInOutAttendance(ctx context.Context, req *attendanceModel.BulkCheckInOutAttendanceRequest, currentUser middleware.AuthClaims) error {
 	timeoutctx, cancel := context.WithTimeout(ctx, p.provider.GetTimeout())
 	defer cancel()
 
@@ -151,7 +151,6 @@ func (p *AttendanceRepository) CheckInOutAttendance(ctx context.Context, req *at
 		updates.CheckedOutAt = &now
 	}
 
-	// Bulk update all attendance records matching the attendance IDs
 	query := p.provider.GetDB().WithContext(timeoutctx).Debug().
 		Table("public.attendance").
 		Where("project_id = ? AND event_id = ? AND attendance_id IN ?", req.ProjectID, req.EventID, req.AttendanceIDs)
@@ -218,4 +217,22 @@ func (p *AttendanceRepository) DeleteAttendanceByIDs(ctx context.Context, attend
 	}
 
 	return nil
+}
+
+func (p *AttendanceRepository) GetListAttendanceByID(ctx context.Context, currentUser middleware.AuthClaims, attendanceIDs []string) ([]string, error) {
+	timeoutctx, cancel := context.WithTimeout(ctx, p.provider.GetTimeout())
+	defer cancel()
+
+	query := p.provider.GetDB().WithContext(timeoutctx).Debug().Table("public.attendance")
+
+	eventID := currentUser.EventID
+	projectID := currentUser.ProjectID
+
+	query = query.Where("project_id = ? AND event_id = ? and attendance_id in (?)", projectID, eventID, attendanceIDs)
+	var attendanceIDsResult []string
+	if err := query.Select("guest_id").Find(&attendanceIDsResult).Error; err != nil {
+		return nil, err
+	}
+
+	return attendanceIDsResult, nil
 }

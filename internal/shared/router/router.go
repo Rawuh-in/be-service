@@ -61,6 +61,10 @@ func NewRouter(g *guestHandler.GuestHandler, e *eventHandler.EventHandler, p *pr
 	protected.HandleFunc("/users/{user_id}", u.DeleteUserByID).Methods(http.MethodDelete, http.MethodOptions)
 
 	protected.HandleFunc("/{project_id}/events/{event_id}/attendance/list", at.ListAttendance).Methods(http.MethodGet, http.MethodOptions)
+	protected.HandleFunc("/{project_id}/events/{event_id}/attendance/list", at.GetAttendanceByID).Methods(http.MethodGet, http.MethodOptions)
+	protected.HandleFunc("/{project_id}/events/{event_id}/attendance/list", at.AddAttendanceBulk).Methods(http.MethodPost, http.MethodOptions)
+	protected.HandleFunc("/{project_id}/events/{event_id}/attendance/list", at.DeleteAttendanceByID).Methods(http.MethodDelete, http.MethodOptions)
+	protected.HandleFunc("/{project_id}/events/{event_id}/attendance/list", at.CheckInOutAttendance).Methods(http.MethodPost, http.MethodOptions)
 
 	// AUTH ROUTES
 	r.HandleFunc("/login", a.Login).Methods(http.MethodPost, http.MethodOptions)

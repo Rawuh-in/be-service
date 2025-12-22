@@ -18,6 +18,100 @@ definitions:
       message:
         type: string
     type: object
+  model.Attendance:
+    properties:
+      checkedInAt:
+        type: string
+      checkedOutAt:
+        type: string
+      createdAt:
+        type: string
+      eventID:
+        type: integer
+      guestID:
+        type: integer
+      id:
+        type: integer
+      projectID:
+        type: integer
+      status:
+        type: integer
+      statusStr:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  model.AttendanceDeleteResult:
+    properties:
+      attendance_id:
+        type: string
+      error:
+        type: boolean
+      message:
+        type: string
+    type: object
+  model.BulkCheckInOutAttendanceRequest:
+    properties:
+      attendance_ids:
+        items:
+          type: string
+        type: array
+      eventID:
+        type: string
+      projectID:
+        type: string
+      type:
+        type: string
+    type: object
+  model.BulkCheckInOutAttendanceResponse:
+    properties:
+      code:
+        format: int32
+        type: integer
+      data:
+        items:
+          $ref: '#/definitions/model.CheckInOutResult'
+        type: array
+      error:
+        type: boolean
+      message:
+        type: string
+    type: object
+  model.CheckInOutResult:
+    properties:
+      attendance_id:
+        type: string
+      code:
+        type: integer
+      error:
+        type: boolean
+      message:
+        type: string
+    type: object
+  model.CreateAttendanceRequest:
+    properties:
+      eventId:
+        type: string
+      guestID:
+        items:
+          type: string
+        type: array
+      projectID:
+        type: string
+    type: object
+  model.CreateAttendanceResponse:
+    properties:
+      code:
+        type: integer
+      error:
+        type: boolean
+      message:
+        type: string
+      results:
+        items:
+          $ref: '#/definitions/model.GuestAttendanceResult'
+        type: array
+    type: object
   model.CreateEventRequest:
     properties:
       description:
@@ -122,6 +216,30 @@ definitions:
       message:
         type: string
     type: object
+  model.DeleteAttendanceByIDRequest:
+    properties:
+      attendance_ids:
+        items:
+          type: string
+        type: array
+      eventID:
+        type: string
+      projectID:
+        type: string
+    type: object
+  model.DeleteAttendanceByIDResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        items:
+          $ref: '#/definitions/model.AttendanceDeleteResult'
+        type: array
+      error:
+        type: boolean
+      message:
+        type: string
+    type: object
   model.DeleteEventResponse:
     properties:
       code:
@@ -185,6 +303,18 @@ definitions:
       updatedByName:
         type: string
     type: object
+  model.GetAttendanceByIDResponse:
+    properties:
+      code:
+        format: int32
+        type: integer
+      data:
+        $ref: '#/definitions/model.Attendance'
+      error:
+        type: boolean
+      message:
+        type: string
+    type: object
   model.GetGuestByIDResponse:
     properties:
       code:
@@ -245,6 +375,31 @@ definitions:
         type: integer
       updatedAt:
         type: string
+    type: object
+  model.GuestAttendanceResult:
+    properties:
+      guest_id:
+        type: string
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
+  model.ListAttendanceResponse:
+    properties:
+      code:
+        format: int32
+        type: integer
+      data:
+        items:
+          $ref: '#/definitions/model.Attendance'
+        type: array
+      error:
+        type: boolean
+      message:
+        type: string
+      pagination:
+        $ref: '#/definitions/model.PaginationResponse'
     type: object
   model.ListEventResponse:
     properties:
@@ -611,6 +766,148 @@ paths:
       summary: Update an event
       tags:
       - event
+  /{project_id}/events/{event_id}/attendance:
+    delete:
+      consumes:
+      - application/json
+      description: Delete one or more attendance records by ID
+      parameters:
+      - description: DeleteAttendanceByIDRequest
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/model.DeleteAttendanceByIDRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.DeleteAttendanceByIDResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIErrorResponse'
+      summary: Delete attendance records
+      tags:
+      - attendance
+    post:
+      consumes:
+      - application/json
+      description: Create multiple attendance records for guests
+      parameters:
+      - description: CreateAttendanceRequest
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/model.CreateAttendanceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.CreateAttendanceResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIErrorResponse'
+      summary: Add attendance records in bulk
+      tags:
+      - attendance
+  /{project_id}/events/{event_id}/attendance/{attendance_id}:
+    get:
+      consumes:
+      - application/json
+      description: Get details for a specific attendance record
+      parameters:
+      - description: attendance id
+        in: path
+        name: attendance_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.GetAttendanceByIDResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.APIErrorResponse'
+      summary: Get attendance by ID
+      tags:
+      - attendance
+  /{project_id}/events/{event_id}/attendance/check:
+    post:
+      consumes:
+      - application/json
+      description: Bulk check-in or check-out attendance records
+      parameters:
+      - description: BulkCheckInOutAttendanceRequest
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/model.BulkCheckInOutAttendanceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.BulkCheckInOutAttendanceResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIErrorResponse'
+      summary: Check-in or check-out attendance
+      tags:
+      - attendance
+  /{project_id}/events/{event_id}/attendance/list:
+    get:
+      consumes:
+      - application/json
+      description: Get paginated list of attendance records for an event
+      parameters:
+      - description: page
+        in: query
+        name: page
+        type: integer
+      - description: limit
+        in: query
+        name: limit
+        type: integer
+      - description: sort field
+        in: query
+        name: sort
+        type: string
+      - description: sort direction
+        in: query
+        name: dir
+        type: string
+      - description: search query
+        in: query
+        name: query
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.ListAttendanceResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIErrorResponse'
+      summary: List attendance records
+      tags:
+      - attendance
   /{project_id}/events/{event_id}/guests:
     post:
       consumes:
