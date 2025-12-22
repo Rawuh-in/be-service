@@ -105,6 +105,21 @@ type AuthClaims struct {
 	UserType  string `json:"usertype"`
 }
 
+// GetUserType returns the user type (implements utils.AuthUser interface)
+func (a AuthClaims) GetUserType() string {
+	return a.UserType
+}
+
+// GetProjectID returns the project ID (implements utils.AuthUser interface)
+func (a AuthClaims) GetProjectID() int64 {
+	return a.ProjectID
+}
+
+// GetEventID returns the event ID (implements utils.AuthUser interface)
+func (a AuthClaims) GetEventID() int64 {
+	return a.EventID
+}
+
 func ParseAuthClaims(payload map[string]interface{}) (AuthClaims, bool) {
 	if payload == nil {
 		return AuthClaims{}, false

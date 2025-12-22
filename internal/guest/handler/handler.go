@@ -47,38 +47,28 @@ func (h *GuestHandler) AddGuest(w http.ResponseWriter, r *http.Request) {
 		ctx = context.WithValue(ctx, middleware.ContextKeyAuthPayload, payloadMap)
 	}
 
-	var p guestModel.CreateGuestRequest
-	if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
-		result.Error = true
-		result.Code = http.StatusInternalServerError
-		result.Message = "Invalid Argument"
-		w.Header().Add("content-type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(result)
+	var guestReq guestModel.CreateGuestRequest
+	if err := json.NewDecoder(r.Body).Decode(&guestReq); err != nil {
+		utils.WriteJSONError(w, http.StatusBadRequest, "Invalid Argument")
 		return
 	}
 
 	req := &guestModel.CreateGuestRequest{
-		Name:      p.Name,
-		Address:   p.Address,
-		Phone:     p.Phone,
-		Email:     p.Email,
-		EventData: p.EventData,
-		GuestData: p.GuestData,
+		Name:      guestReq.Name,
+		Address:   guestReq.Address,
+		Phone:     guestReq.Phone,
+		Email:     guestReq.Email,
+		EventData: guestReq.EventData,
+		GuestData: guestReq.GuestData,
 		EventId:   mux.Vars(r)["event_id"],
 		ProjectID: mux.Vars(r)["project_id"],
 	}
 	if err := h.svc.AddGuest(ctx, req); err != nil {
 		utils.HandleGrpcError(w, err)
 		return
-
 	}
 
-	result.Error = false
-	result.Code = http.StatusOK
-	w.Header().Add("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(result)
+	utils.WriteJSONSuccess(w, result)
 }
 
 // UpdateGuestByID godoc
@@ -105,14 +95,9 @@ func (h *GuestHandler) UpdateGuestByID(w http.ResponseWriter, r *http.Request) {
 		ctx = context.WithValue(ctx, middleware.ContextKeyAuthPayload, payloadMap)
 	}
 
-	var p guestModel.UpdateGuestRequest
-	if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
-		result.Error = true
-		result.Code = http.StatusInternalServerError
-		result.Message = "Invalid Argument"
-		w.Header().Add("content-type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(result)
+	var guestReq guestModel.UpdateGuestRequest
+	if err := json.NewDecoder(r.Body).Decode(&guestReq); err != nil {
+		utils.WriteJSONError(w, http.StatusBadRequest, "Invalid Argument")
 		return
 	}
 
@@ -120,23 +105,19 @@ func (h *GuestHandler) UpdateGuestByID(w http.ResponseWriter, r *http.Request) {
 		ProjectID: mux.Vars(r)["project_id"],
 		EventId:   mux.Vars(r)["event_id"],
 		GuestID:   mux.Vars(r)["guest_id"],
-		EventData: p.EventData,
-		GuestData: p.GuestData,
-		Name:      p.Name,
-		Address:   p.Address,
-		Phone:     p.Phone,
-		Email:     p.Email,
+		EventData: guestReq.EventData,
+		GuestData: guestReq.GuestData,
+		Name:      guestReq.Name,
+		Address:   guestReq.Address,
+		Phone:     guestReq.Phone,
+		Email:     guestReq.Email,
 	}
 	if err := h.svc.UpdateGuestByID(ctx, req); err != nil {
 		utils.HandleGrpcError(w, err)
 		return
 	}
 
-	result.Error = false
-	result.Code = http.StatusOK
-	w.Header().Add("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(result)
+	utils.WriteJSONSuccess(w, result)
 }
 
 // ListGuests godoc
@@ -154,10 +135,10 @@ func (h *GuestHandler) UpdateGuestByID(w http.ResponseWriter, r *http.Request) {
 func (h *GuestHandler) ListGuests(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	result := &guestModel.ListGuestResponse{
-		Error: false,
-		Code:  http.StatusOK,
-	}
+	// result := &guestModel.ListGuestResponse{
+	// 	Error: false,
+	// 	Code:  http.StatusOK,
+	// }
 
 	if payloadMap, okp := middleware.GetAuthPayload(ctx); okp {
 		ctx = context.WithValue(ctx, middleware.ContextKeyAuthPayload, payloadMap)
@@ -191,11 +172,8 @@ func (h *GuestHandler) ListGuests(w http.ResponseWriter, r *http.Request) {
 		utils.HandleGrpcError(w, err)
 		return
 	}
-	result.Error = false
-	result.Code = http.StatusOK
-	w.Header().Add("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(guests)
+
+	utils.WriteJSONSuccess(w, guests)
 }
 
 // GetGuestByID godoc
@@ -212,10 +190,10 @@ func (h *GuestHandler) ListGuests(w http.ResponseWriter, r *http.Request) {
 func (h *GuestHandler) GetGuestByID(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	result := &guestModel.GetGuestByIDResponse{
-		Error: false,
-		Code:  http.StatusOK,
-	}
+	// result := &guestModel.GetGuestByIDResponse{
+	// 	Error: false,
+	// 	Code:  http.StatusOK,
+	// }
 
 	if payloadMap, okp := middleware.GetAuthPayload(ctx); okp {
 		ctx = context.WithValue(ctx, middleware.ContextKeyAuthPayload, payloadMap)
@@ -232,11 +210,8 @@ func (h *GuestHandler) GetGuestByID(w http.ResponseWriter, r *http.Request) {
 		utils.HandleGrpcError(w, err)
 		return
 	}
-	result.Error = false
-	result.Code = http.StatusOK
-	w.Header().Add("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(guest)
+
+	utils.WriteJSONSuccess(w, guest)
 }
 
 // DeleteGuestByID godoc
@@ -275,9 +250,5 @@ func (h *GuestHandler) DeleteGuestByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result.Error = false
-	result.Code = http.StatusOK
-	w.Header().Add("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(result)
+	utils.WriteJSONSuccess(w, result)
 }

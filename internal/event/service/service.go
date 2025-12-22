@@ -148,17 +148,8 @@ func (s *eventService) DetailEvent(ctx context.Context, req *eventModel.DetailEv
 		return nil, status.Errorf(codes.InvalidArgument, "Invalid Argument")
 	}
 
-	switch currentUser.UserType {
-	case constant.UserTypeSystemAdmin:
-		// system admin can access all projects
-	case constant.UserTypeProjectUser:
-		if req.ProjectID != fmt.Sprintf("%d", currentUser.ProjectID) {
-			loggerZap.Error("err GetMeFromMD unauthorized user", nil)
-			return nil, status.Error(codes.PermissionDenied, "Permission Denied")
-		}
-	default:
-		loggerZap.Error("err GetMeFromMD unauthorized user type", nil)
-		return nil, status.Error(codes.PermissionDenied, "Permission Denied")
+	if err := utils.ValidateUserAuthorization(currentUser, req.ProjectID, "", loggerZap); err != nil {
+		return nil, err
 	}
 
 	loggerZap.Info("Start ListEvent")
@@ -206,17 +197,8 @@ func (s *eventService) DeleteEvent(ctx context.Context, req *eventModel.DeleteEv
 		return status.Errorf(codes.PermissionDenied, "Permission Denied")
 	}
 
-	switch currentUser.UserType {
-	case constant.UserTypeSystemAdmin:
-		// system admin can access all projects
-	case constant.UserTypeProjectUser:
-		if req.ProjectID != fmt.Sprintf("%d", currentUser.ProjectID) {
-			loggerZap.Error("err GetMeFromMD unauthorized user", nil)
-			return status.Error(codes.PermissionDenied, "Permission Denied")
-		}
-	default:
-		loggerZap.Error("err GetMeFromMD unauthorized user type", nil)
-		return status.Error(codes.PermissionDenied, "Permission Denied")
+	if err := utils.ValidateUserAuthorization(currentUser, req.ProjectID, "", loggerZap); err != nil {
+		return err
 	}
 
 	loggerZap.Info("Start ListEvent")
@@ -247,17 +229,8 @@ func (s *eventService) AddEvent(ctx context.Context, req *eventModel.CreateEvent
 		return status.Error(codes.Unauthenticated, "Unauthenticated")
 	}
 
-	switch currentUser.UserType {
-	case constant.UserTypeSystemAdmin:
-		// system admin can access all projects
-	case constant.UserTypeProjectUser:
-		if req.ProjectID != fmt.Sprintf("%d", currentUser.ProjectID) {
-			loggerZap.Error("err GetMeFromMD unauthorized user", nil)
-			return status.Error(codes.PermissionDenied, "Permission Denied")
-		}
-	default:
-		loggerZap.Error("err GetMeFromMD unauthorized user type", nil)
-		return status.Error(codes.PermissionDenied, "Permission Denied")
+	if err := utils.ValidateUserAuthorization(currentUser, req.ProjectID, "", loggerZap); err != nil {
+		return err
 	}
 
 	remarkLength, _ := strconv.Atoi(utils.GetEnv("EVENT_REMARK_LENGTH", "500"))
@@ -337,17 +310,8 @@ func (s *eventService) UpdateEvent(ctx context.Context, req *eventModel.UpdateEv
 		return status.Error(codes.Unauthenticated, "Unauthenticated")
 	}
 
-	switch currentUser.UserType {
-	case constant.UserTypeSystemAdmin:
-		// system admin can access all projects
-	case constant.UserTypeProjectUser:
-		if req.ProjectID != fmt.Sprintf("%d", currentUser.ProjectID) {
-			loggerZap.Error("err GetMeFromMD unauthorized user", nil)
-			return status.Error(codes.PermissionDenied, "Permission Denied")
-		}
-	default:
-		loggerZap.Error("err GetMeFromMD unauthorized user type", nil)
-		return status.Error(codes.PermissionDenied, "Permission Denied")
+	if err := utils.ValidateUserAuthorization(currentUser, req.ProjectID, "", loggerZap); err != nil {
+		return err
 	}
 
 	remarkLength, _ := strconv.Atoi(utils.GetEnv("EVENT_REMARK_LENGTH", "500"))

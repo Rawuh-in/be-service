@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 
+	attendanceHandler "rawuh-service/internal/attendance/handler"
 	authHandler "rawuh-service/internal/auth/handler"
 	eventHandler "rawuh-service/internal/event/handler"
 	guestHandler "rawuh-service/internal/guest/handler"
@@ -22,7 +23,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func NewRouter(g *guestHandler.GuestHandler, e *eventHandler.EventHandler, p *projectHandler.ProjectHandler, u *userHandler.UserHandler, a *authHandler.AuthHandler, rdb *redisPkg.Redis) http.Handler {
+func NewRouter(g *guestHandler.GuestHandler, e *eventHandler.EventHandler, p *projectHandler.ProjectHandler, u *userHandler.UserHandler, a *authHandler.AuthHandler, at *attendanceHandler.AttendanceHandler, rdb *redisPkg.Redis) http.Handler {
 	r := mux.NewRouter()
 	// Apply CORS middleware first so preflight and headers are set globally.
 	r.Use(middleware.CORSMiddleware)
@@ -58,6 +59,12 @@ func NewRouter(g *guestHandler.GuestHandler, e *eventHandler.EventHandler, p *pr
 	protected.HandleFunc("/users/{user_id}", u.UpdateUserByID).Methods(http.MethodPut, http.MethodOptions)
 	protected.HandleFunc("/users/{user_id}", u.GetUserByID).Methods(http.MethodGet, http.MethodOptions)
 	protected.HandleFunc("/users/{user_id}", u.DeleteUserByID).Methods(http.MethodDelete, http.MethodOptions)
+
+	protected.HandleFunc("/{project_id}/events/{event_id}/attendance/list", at.ListAttendance).Methods(http.MethodGet, http.MethodOptions)
+	protected.HandleFunc("/{project_id}/events/{event_id}/attendance/list", at.GetAttendanceByID).Methods(http.MethodGet, http.MethodOptions)
+	protected.HandleFunc("/{project_id}/events/{event_id}/attendance/list", at.AddAttendanceBulk).Methods(http.MethodPost, http.MethodOptions)
+	protected.HandleFunc("/{project_id}/events/{event_id}/attendance/list", at.DeleteAttendanceByID).Methods(http.MethodDelete, http.MethodOptions)
+	protected.HandleFunc("/{project_id}/events/{event_id}/attendance/list", at.CheckInOutAttendance).Methods(http.MethodPost, http.MethodOptions)
 
 	// AUTH ROUTES
 	r.HandleFunc("/login", a.Login).Methods(http.MethodPost, http.MethodOptions)
