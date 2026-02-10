@@ -1,6 +1,9 @@
 package model
 
-import "rawuh-service/internal/shared/model"
+import (
+	guestModel "rawuh-service/internal/guest/model"
+	"rawuh-service/internal/shared/model"
+)
 
 type ListAttendanceRequest struct {
 	Page      int32  `json:"page"`
@@ -24,11 +27,12 @@ type CreateAttendanceRequest struct {
 	EventId   string
 	ProjectID string
 	GuestID   []*string
+	GuestData map[string]*guestModel.Guest
 }
 
 type GuestAttendanceResult struct {
 	GuestID string `json:"guest_id"`
-	Success bool   `json:"success"`
+	Error   bool   `json:"error"`
 	Message string `json:"message"`
 }
 
@@ -104,6 +108,5 @@ type BulkCheckInOutAttendanceResponse struct {
 type CheckInOutResult struct {
 	AttendanceID string `json:"attendance_id"`
 	Error        bool   `json:"error"`
-	Code         int32  `json:"code"`
 	Message      string `json:"message"`
 }

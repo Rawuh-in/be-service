@@ -3,10 +3,12 @@ package db
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
 	"time"
 
 	attendanceModel "rawuh-service/internal/attendance/model"
+	guestModel "rawuh-service/internal/guest/model"
 	"rawuh-service/internal/shared/constant"
 	"rawuh-service/internal/shared/db"
 	"rawuh-service/internal/shared/middleware"
@@ -29,7 +31,7 @@ func (p *AttendanceRepository) ListAttendance(ctx context.Context, req *attendan
 	timeoutctx, cancel := context.WithTimeout(ctx, p.provider.GetTimeout())
 	defer cancel()
 
-	query := p.provider.GetDB().WithContext(timeoutctx).Debug().Table("public.attendance")
+	query := p.provider.GetDB().WithContext(timeoutctx).Debug().Table("public.attendances")
 	query = query.Where("project_id = ? AND event_id = ?", req.ProjectID, req.EventId)
 
 	query = query.Scopes(
@@ -57,7 +59,7 @@ func (p *AttendanceRepository) GetAttendanceByID(ctx context.Context, req *atten
 	var data attendanceModel.Attendance
 
 	query := p.provider.GetDB().WithContext(timeoutctx).Debug().
-		Table("public.attendance")
+		Table("public.attendances")
 
 	query = query.Where("project_id = ? and attendance_id = ? and event_id = ?", req.ProjectID, req.AttendanceID, req.EventId)
 
@@ -75,25 +77,32 @@ func (p *AttendanceRepository) CreateAttendance(ctx context.Context, req *attend
 	timeoutctx, cancel := context.WithTimeout(ctx, p.provider.GetTimeout())
 	defer cancel()
 
+	fmt.Println("START CREATE ATTENDANCE")
+
 	eventInt, _ := strconv.ParseInt(req.EventId, 0, 64)
 	projectInt, _ := strconv.ParseInt(req.ProjectID, 0, 64)
 
 	now := time.Now()
 	var attendances []*attendanceModel.Attendance
 
-	for _, guestID := range req.GuestID {
-		guestInt, _ := strconv.ParseInt(*guestID, 0, 64)
+	for _, guest := range req.GuestData {
+		// guestInt, _ := strconv.ParseInt(*guest.GuestID, 0, 64)
 		attendances = append(attendances, &attendanceModel.Attendance{
-			ProjectID: projectInt,
-			EventID:   eventInt,
-			GuestID:   guestInt,
-			CreatedAt: &now,
+			ProjectID:     projectInt,
+			EventID:       eventInt,
+			GuestID:       guest.GuestID,
+			GuestName:     guest.Name,
+			Status:        1,
+			StatusStr:     "Active",
+			CreatedAt:     &now,
+			CreatedByName: currentUser.Name,
+			CreatedByID:   fmt.Sprint(currentUser.UserID),
 		})
 	}
 
 	if err := p.provider.GetDB().WithContext(timeoutctx).Debug().
-		Table("public.attendance").
-		Omit("id").
+		Table("public.attendances").
+		Omit("ID").
 		CreateInBatches(attendances, 100).Error; err != nil {
 		return err
 	}
@@ -105,7 +114,7 @@ func (p *AttendanceRepository) UpdateAttendance(ctx context.Context, req *attend
 	timeoutctx, cancel := context.WithTimeout(ctx, p.provider.GetTimeout())
 	defer cancel()
 
-	query := p.provider.GetDB().WithContext(timeoutctx).Debug().Table("public.attendance")
+	query := p.provider.GetDB().WithContext(timeoutctx).Debug().Table("public.attendances")
 	query = query.Where("project_id = ? and attendance_id = ? and event_id = ?", req.ProjectID, req.AttendanceID, req.EventId)
 
 	eventInt, _ := strconv.ParseInt(req.EventId, 0, 64)
@@ -144,15 +153,24 @@ func (p *AttendanceRepository) CheckInOutAttendance(ctx context.Context, req *at
 		UpdatedAt: &now,
 	}
 
+	selectFields := []string{"updated_at", "status", "status_str"}
+
 	switch req.Type {
 	case constant.AttendanceTypeCheckIn:
 		updates.CheckedInAt = &now
+		updates.Status = 2
+		updates.StatusStr = "Checked In"
+		selectFields = append(selectFields, "checked_in_at")
 	case constant.AttendanceTypeCheckOut:
 		updates.CheckedOutAt = &now
+		updates.Status = 3
+		updates.StatusStr = "Checked Out"
+		selectFields = append(selectFields, "checked_out_at")
 	}
 
 	query := p.provider.GetDB().WithContext(timeoutctx).Debug().
-		Table("public.attendance").
+		Table("public.attendances").
+		Select(selectFields).
 		Where("project_id = ? AND event_id = ? AND attendance_id IN ?", req.ProjectID, req.EventID, req.AttendanceIDs)
 
 	if err := query.Updates(updates).Error; err != nil {
@@ -162,34 +180,31 @@ func (p *AttendanceRepository) CheckInOutAttendance(ctx context.Context, req *at
 	return nil
 }
 
-func (p *AttendanceRepository) GetListGuestByEventID(ctx context.Context, currentUser middleware.AuthClaims) ([]string, error) {
+func (p *AttendanceRepository) GetListGuestByEventID(ctx context.Context, currentUser middleware.AuthClaims, req *attendanceModel.CreateAttendanceRequest) ([]*guestModel.Guest, error) {
 	timeoutctx, cancel := context.WithTimeout(ctx, p.provider.GetTimeout())
 	defer cancel()
 
 	query := p.provider.GetDB().WithContext(timeoutctx).Debug().Table("public.guests")
 
-	eventID := currentUser.EventID
-	projectID := currentUser.ProjectID
+	query = query.Where("project_id = ? AND event_id = ?", req.ProjectID, req.EventId)
 
-	query = query.Where("project_id = ? AND event_id = ?", projectID, eventID)
-
-	var guestIDs []string
-	if err := query.Select("guest_id").Find(&guestIDs).Error; err != nil {
+	var guests []*guestModel.Guest
+	if err := query.Find(&guests).Error; err != nil {
 		return nil, err
 	}
 
-	return guestIDs, nil
+	return guests, nil
 }
 
-func (p *AttendanceRepository) GetAttendancesByIDs(ctx context.Context, attendanceIDs []string, currentUser middleware.AuthClaims) ([]*attendanceModel.Attendance, error) {
+func (p *AttendanceRepository) GetAttendancesByIDs(ctx context.Context, req *attendanceModel.DeleteAttendanceByIDRequest) ([]*attendanceModel.Attendance, error) {
 	timeoutctx, cancel := context.WithTimeout(ctx, p.provider.GetTimeout())
 	defer cancel()
 
 	var attendances []*attendanceModel.Attendance
 
 	query := p.provider.GetDB().WithContext(timeoutctx).Debug().
-		Table("public.attendance").
-		Where("attendance_id IN ? AND project_id = ? AND event_id = ?", attendanceIDs, currentUser.ProjectID, currentUser.EventID)
+		Table("public.attendances").
+		Where("attendance_id IN ? AND project_id = ? AND event_id = ?", req.AttendanceIDs, req.ProjectID, req.EventID)
 
 	if err := query.Find(&attendances).Error; err != nil {
 		return nil, err
@@ -198,13 +213,13 @@ func (p *AttendanceRepository) GetAttendancesByIDs(ctx context.Context, attendan
 	return attendances, nil
 }
 
-func (p *AttendanceRepository) DeleteAttendanceByIDs(ctx context.Context, attendanceIDs []string, currentUser middleware.AuthClaims) error {
+func (p *AttendanceRepository) DeleteAttendanceByIDs(ctx context.Context, req *attendanceModel.DeleteAttendanceByIDRequest) error {
 	timeoutctx, cancel := context.WithTimeout(ctx, p.provider.GetTimeout())
 	defer cancel()
 
-	query := p.provider.GetDB().WithContext(timeoutctx).Debug().Table("public.attendance")
+	query := p.provider.GetDB().WithContext(timeoutctx).Debug().Table("public.attendances")
 
-	query = query.Where("project_id = ? AND event_id = ? AND attendance_id IN ?", currentUser.ProjectID, currentUser.EventID, attendanceIDs)
+	query = query.Where("project_id = ? AND event_id = ? AND attendance_id IN ?", req.ProjectID, req.EventID, req.AttendanceIDs)
 
 	res := query.Delete(&attendanceModel.Attendance{})
 
@@ -219,20 +234,50 @@ func (p *AttendanceRepository) DeleteAttendanceByIDs(ctx context.Context, attend
 	return nil
 }
 
-func (p *AttendanceRepository) GetListAttendanceByID(ctx context.Context, currentUser middleware.AuthClaims, attendanceIDs []string) ([]string, error) {
+func (p *AttendanceRepository) GetListAttendanceByID(ctx context.Context, req *attendanceModel.BulkCheckInOutAttendanceRequest) ([]string, error) {
 	timeoutctx, cancel := context.WithTimeout(ctx, p.provider.GetTimeout())
 	defer cancel()
 
-	query := p.provider.GetDB().WithContext(timeoutctx).Debug().Table("public.attendance")
+	query := p.provider.GetDB().WithContext(timeoutctx).Debug().Table("public.attendances")
 
-	eventID := currentUser.EventID
-	projectID := currentUser.ProjectID
-
-	query = query.Where("project_id = ? AND event_id = ? and attendance_id in (?)", projectID, eventID, attendanceIDs)
+	query = query.Where("project_id = ? AND event_id = ? and attendance_id in (?)", req.ProjectID, req.EventID, req.AttendanceIDs)
 	var attendanceIDsResult []string
-	if err := query.Select("guest_id").Find(&attendanceIDsResult).Error; err != nil {
+	if err := query.Select("attendance_id").Find(&attendanceIDsResult).Error; err != nil {
 		return nil, err
 	}
 
 	return attendanceIDsResult, nil
+}
+
+func (p *AttendanceRepository) GetExistingAttendanceByGuestIDs(ctx context.Context, guestIDs []int64, eventID int64, projectID int64) ([]int64, error) {
+	timeoutctx, cancel := context.WithTimeout(ctx, p.provider.GetTimeout())
+	defer cancel()
+
+	query := p.provider.GetDB().WithContext(timeoutctx).Debug().Table("public.attendances")
+
+	query = query.Where("project_id = ? AND event_id = ? AND guest_id IN ?", projectID, eventID, guestIDs)
+
+	var existingGuestIDs []int64
+	if err := query.Select("DISTINCT guest_id").Find(&existingGuestIDs).Error; err != nil {
+		return nil, err
+	}
+
+	return existingGuestIDs, nil
+}
+
+func (p *AttendanceRepository) GetAttendanceRecordsByIDs(ctx context.Context, attendanceIDs []string, projectID, eventID string) ([]*attendanceModel.Attendance, error) {
+	timeoutctx, cancel := context.WithTimeout(ctx, p.provider.GetTimeout())
+	defer cancel()
+
+	var attendances []*attendanceModel.Attendance
+
+	query := p.provider.GetDB().WithContext(timeoutctx).Debug().
+		Table("public.attendances").
+		Where("attendance_id IN ? AND project_id = ? AND event_id = ?", attendanceIDs, projectID, eventID)
+
+	if err := query.Find(&attendances).Error; err != nil {
+		return nil, err
+	}
+
+	return attendances, nil
 }
